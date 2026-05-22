@@ -3,6 +3,9 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const AppError = require('./src/utils/appError');
 const globalErrorHandler = require('./src/middlewares/errorMiddleware');
@@ -29,6 +32,17 @@ app.use('/api', limiter);
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
 
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
+
+// Prevent parameter pollution
+app.use(hpp({
+  whitelist: ['price', 'ratingsAverage', 'category']
+}));
+
 // CORS
 app.use(cors({
   origin: process.env.CLIENT_URL,
@@ -40,8 +54,14 @@ app.use(express.static(`${__dirname}/public`));
 
 // 2) ROUTES
 const bookRouter = require('./src/routes/bookRoutes');
+const userRouter = require('./src/routes/userRoutes');
+const reviewRouter = require('./src/routes/reviewRoutes');
+const orderRouter = require('./src/routes/orderRoutes');
 
 app.use('/api/v1/books', bookRouter);
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/orders', orderRouter);
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -51,7 +71,7 @@ app.get('/', (req, res) => {
 });
 
 // Handle unhandled routes
-app.all('*', (req, res, next) => {
+app.all('*path', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 

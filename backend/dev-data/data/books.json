@@ -1,0 +1,34 @@
+[
+  {
+    "title": "The Great Gatsby",
+    "author": "F. Scott Fitzgerald",
+    "price": 15,
+    "description": "A story of money, love, and the American Dream.",
+    "category": "Fiction",
+    "stock": 50
+  },
+  {
+    "title": "A Brief History of Time",
+    "author": "Stephen Hawking",
+    "price": 25,
+    "description": "A landmark volume in science writing by one of the great minds of our time.",
+    "category": "Science",
+    "stock": 30
+  },
+  {
+    "title": "The Diary of a Young Girl",
+    "author": "Anne Frank",
+    "price": 12,
+    "description": "The writings from the Dutch-language diary kept by Anne Frank.",
+    "category": "Biography",
+    "stock": 100
+  },
+  {
+    "title": "Sapiens: A Brief History of Humankind",
+    "author": "Yuval Noah Harari",
+    "price": 20,
+    "description": "A book by Yuval Noah Harari, first published in Hebrew in Israel in 2011.",
+    "category": "History",
+    "stock": 45
+  }
+]
