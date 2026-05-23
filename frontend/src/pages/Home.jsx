@@ -87,6 +87,11 @@ const Home = () => {
 
   return (
     <div className="home-page">
+      {/* Preload images to prevent blank frames */}
+      <div style={{ display: 'none' }}>
+        {slides.map(s => <img key={s.id} src={s.image} alt="preload" />)}
+      </div>
+
       {/* Hero Slider Section */}
       <section className="hero-slider" id="top">
         <motion.div 
