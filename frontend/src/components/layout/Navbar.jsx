@@ -1,47 +1,49 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, Search, BookOpen, Heart } from 'lucide-react';
-import './Navbar.css';
+import { ShoppingCart, User, Heart, Search } from 'lucide-react';
 import logo from '../../assets/logo.png';
+import './Navbar.css';
 
 const Navbar = () => {
   return (
     <nav className="navbar glass">
       <div className="navbar-container">
-        <Link to="/" className="logo">
-          <img src={logo} alt="BookOra Logo" className="logo-img" />
-          <span className="logo-text">Book<span className="gradient-text">ora</span></span>
+
+        {/* Left: Logo */}
+        <Link to="/" className="nav-logo">
+          <img src={logo} alt="Bookora" className="nav-logo-img" />
+          <span className="nav-logo-text">Book<span className="gradient-text">ora</span></span>
         </Link>
 
-        <div className="nav-search">
-          <Search className="search-icon" size={18} />
-          <input type="text" placeholder="Search for books, authors..." />
+        {/* Center: Search Bar */}
+        <div className="nav-search-wrap">
+          <input
+            type="text"
+            className="nav-search-input"
+            placeholder="Enter Keyword To Search..."
+          />
+          <button className="nav-search-btn" aria-label="Search">
+            <Search size={18} />
+            <span>Search</span>
+          </button>
         </div>
 
+        {/* Right: Action Icons */}
         <div className="nav-actions">
-          <Link to="/sell" className="sell-btn">Sell Books</Link>
-          
-          <div className="nav-icons">
-            <button className="icon-btn"><Search size={22} /></button>
-            <Link to="/wishlist" className="icon-btn hide-mobile">
-              <Heart size={22} />
-            </Link>
-            <Link to="/cart" className="icon-btn cart-btn">
-              <ShoppingCart size={22} />
-              <span className="badge">0</span>
-            </Link>
-          </div>
+          <Link to="/wishlist" className="nav-icon-btn" title="My Favorites">
+            <Heart size={24} />
+          </Link>
 
-          <Link to="/auth" className="profile-pill">
-            <div className="profile-info hide-mobile">
-              <span className="profile-name">Guest User</span>
-              <span className="profile-status">Login to explore</span>
-            </div>
-            <div className="profile-avatar">
-              <User size={20} />
-            </div>
+          <Link to="/auth" className="nav-icon-btn" title="Account">
+            <User size={24} />
+          </Link>
+
+          <Link to="/cart" className="nav-icon-btn" title="Cart">
+            <ShoppingCart size={24} />
+            <span className="cart-badge">0</span>
           </Link>
         </div>
+
       </div>
     </nav>
   );
