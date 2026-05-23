@@ -151,13 +151,28 @@ const BooksMegaMenu = ({ onClose }) => (
 const NavItem = ({ item }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const timeoutRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setOpen(false);
+    }, 150); // small delay to bridge gaps
+  };
 
   useEffect(() => {
     const handleClick = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
 
   /* --- Books mega-menu item --- */
@@ -166,8 +181,8 @@ const NavItem = ({ item }) => {
       <div
         className="subnav-item subnav-item--mega"
         ref={ref}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <button className="subnav-link subnav-trigger">
           {item.label}
@@ -196,8 +211,8 @@ const NavItem = ({ item }) => {
     <div
       className="subnav-item"
       ref={ref}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <button className={`subnav-link subnav-trigger${item.label === 'SELL YOUR BOOKS' ? ' subnav-cta' : ''}`}>
         {item.label}
