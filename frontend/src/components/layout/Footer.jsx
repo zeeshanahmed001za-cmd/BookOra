@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Youtube, Mail, MapPin, Phone, Send } from 'lucide-react';
+import { Globe, AtSign, Camera, Video, Mail, MapPin, Phone, Send } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
@@ -20,10 +20,10 @@ const Footer = () => {
             <p><Mail size={16} /> hello@bookora.com</p>
           </div>
           <div className="social-icons">
-            <a href="#" aria-label="Facebook"><Facebook size={20} /></a>
-            <a href="#" aria-label="Twitter"><Twitter size={20} /></a>
-            <a href="#" aria-label="Instagram"><Instagram size={20} /></a>
-            <a href="#" aria-label="Youtube"><Youtube size={20} /></a>
+            <a href="#" aria-label="Facebook"><Globe size={20} /></a>
+            <a href="#" aria-label="Twitter"><AtSign size={20} /></a>
+            <a href="#" aria-label="Instagram"><Camera size={20} /></a>
+            <a href="#" aria-label="Youtube"><Video size={20} /></a>
           </div>
         </div>
 

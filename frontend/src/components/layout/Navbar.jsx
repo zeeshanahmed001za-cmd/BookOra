@@ -1,10 +1,20 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, User, Heart, Search } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
 
 const Navbar = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/books?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   return (
     <nav className="navbar glass">
       <div className="navbar-container">
@@ -16,17 +26,19 @@ const Navbar = () => {
         </Link>
 
         {/* Center: Search Bar */}
-        <div className="nav-search-wrap">
+        <form onSubmit={handleSearch} className="nav-search-wrap">
           <input
             type="text"
             className="nav-search-input"
             placeholder="Enter Keyword To Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <button className="nav-search-btn" aria-label="Search">
+          <button type="submit" className="nav-search-btn" aria-label="Search">
             <Search size={18} />
             <span>Search</span>
           </button>
-        </div>
+        </form>
 
         {/* Right: Action Icons */}
         <div className="nav-actions">
