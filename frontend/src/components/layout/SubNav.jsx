@@ -209,7 +209,7 @@ const NavItem = ({ item }) => {
   /* --- Standard dropdown --- */
   return (
     <div
-      className="subnav-item"
+      className={`subnav-item${item.label === 'SELL YOUR BOOKS' ? ' subnav-item--cta' : ''}`}
       ref={ref}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

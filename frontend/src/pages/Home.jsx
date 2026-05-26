@@ -99,7 +99,7 @@ const BookCarousel = ({ books }) => {
               <div className="book-info">
                 <h3 className="book-title">{book.title}</h3>
                 <p  className="book-author">{book.author}</p>
-                <span className="book-price">${book.price.toFixed(2)}</span>
+                <span className="book-price">₹{book.price.toFixed(2)}</span>
               </div>
             </div>
           ))}

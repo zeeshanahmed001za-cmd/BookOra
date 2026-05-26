@@ -85,7 +85,7 @@ const BookCard = ({ book, index }) => {
       </div>
 
       <div className="book-footer">
-        <span className="book-price">${book.price.toFixed(2)}</span>
+        <span className="book-price">₹{book.price.toFixed(2)}</span>
         <button className="add-cart-btn">
           <ShoppingCart size={15} /> Add to Cart
         </button>
@@ -246,7 +246,7 @@ const Books = () => {
             exit={{ opacity: 0, height: 0 }}
           >
             <div className="filter-section">
-              <h4>Max Price: <span className="gradient-text">${priceRange}</span></h4>
+              <h4>Max Price: <span className="gradient-text">₹{priceRange}</span></h4>
               <input
                 type="range"
                 min={5} max={50}
@@ -254,7 +254,7 @@ const Books = () => {
                 onChange={(e) => setPriceRange(Number(e.target.value))}
                 className="price-range"
               />
-              <div className="price-labels"><span>$5</span><span>$50</span></div>
+              <div className="price-labels"><span>₹5</span><span>₹50</span></div>
             </div>
           </motion.div>
         )}

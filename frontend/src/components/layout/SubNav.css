@@ -52,12 +52,20 @@
 /* CTA — Sell Books (now a dropdown trigger) */
 .subnav-cta {
   color: var(--accent-primary);
-  margin-left: auto; /* push to the right end */
 }
 
 .subnav-cta:hover {
   color: #fff;
   background: var(--accent-primary);
+}
+
+.subnav-item--cta {
+  margin-left: auto;
+}
+
+.subnav-item--cta .subnav-dropdown {
+  left: auto;
+  right: 0;
 }
 
 /* Track My Order — stays at the very end */

@@ -8,6 +8,28 @@ import sayno from '../assets/sayno.jpg';
 import surroundediditos from '../assets/surroundediditos.png';
 import ugly from '../assets/ugly.jpg';
 
+// New static cover assets
+import _1984 from '../assets/1984.jpg';
+import greatgatsby from '../assets/Greatgatsby.jpg';
+import beesting from '../assets/ThebeeSting.jpg';
+import bookthief from '../assets/bookthief.jpg';
+import briefhistorytime from '../assets/briefhistorytime.png';
+import canthurtme from '../assets/canthurtme.webp';
+import deepwork from '../assets/deepwork.jpg';
+import hailmary from '../assets/hailmary.jpg';
+import hobbit from '../assets/hobbit.jpg';
+import kafka from '../assets/kafka.jpg';
+import lifepi from '../assets/lifepi.jpg';
+import luster from '../assets/luster.jpg';
+import money from '../assets/money.webp';
+import monk from '../assets/monk.jpg';
+import neuro from '../assets/neuro.jpg';
+import richdad from '../assets/richdad.jpg';
+import silentspring from '../assets/silentspring.webp';
+import stevejobs from '../assets/stevejobs.jpg';
+import thekite from '../assets/thekite.jpg';
+import themurderafter from '../assets/themurderafter.jpg';
+
 // Vite-friendly static cover assets registry
 export const bookImages = {
   alchemist,
@@ -18,7 +40,27 @@ export const bookImages = {
   sapiens,
   sayno,
   surroundediditos,
-  ugly
+  ugly,
+  _1984,
+  greatgatsby,
+  beesting,
+  bookthief,
+  briefhistorytime,
+  canthurtme,
+  deepwork,
+  hailmary,
+  hobbit,
+  kafka,
+  lifepi,
+  luster,
+  money,
+  monk,
+  neuro,
+  richdad,
+  silentspring,
+  stevejobs,
+  thekite,
+  themurderafter
 };
 
 export const fallbackImage = 'https://images.unsplash.com/photo-1543004218-2bc3500d970c?auto=format&fit=crop&q=80&w=400';
@@ -39,19 +81,21 @@ const getBaseFilename = (path) => {
 
 /**
  * Dynamically resolves a cover image based on filename and title similarity.
- * Returns the resolved physical asset path OR null to explicitly trigger the fallback image.
+ * Returns the resolved physical asset path OR a unique placeholder cover if not available.
  * This guarantees zero duplicate cover reuse.
  *
  * @param {string} coverPath - Relative asset path from books.json
  * @param {string} title - Book title
- * @returns {string|null} Resolved asset path or null
+ * @returns {string} Resolved asset path or unique placeholder cover URL
  */
 export const matchBookCover = (coverPath, title) => {
   const filename = getBaseFilename(coverPath);
   const normFile = normalizeString(filename);
   const normTitle = normalizeString(title);
   
-  if (!normFile && !normTitle) return null;
+  if (!normFile && !normTitle) {
+    return `https://placehold.co/400x600/0f0f0f/a294fb?text=${encodeURIComponent(title || 'Bookora')}`;
+  }
 
   const keys = Object.keys(bookImages);
 
@@ -96,6 +140,7 @@ export const matchBookCover = (coverPath, title) => {
   }
 
   // 5. Intelligent similarity overlap match for slight spelling differences (e.g. "surroundediditos" matching "Surrounded by Idiots")
+  // Using a strict 0.75+ threshold to ensure we never match unrelated covers
   let bestMatch = null;
   let highestOverlap = 0;
 
@@ -112,7 +157,7 @@ export const matchBookCover = (coverPath, title) => {
     }
     
     const overlapScore = commonChars / Math.max(normKey.length, normTitle.length);
-    if (overlapScore > highestOverlap && overlapScore > 0.55) {
+    if (overlapScore > highestOverlap && overlapScore > 0.75) {
       highestOverlap = overlapScore;
       bestMatch = bookImages[key];
     }
@@ -122,6 +167,6 @@ export const matchBookCover = (coverPath, title) => {
     return bestMatch;
   }
 
-  // If no match is physically available, return null to signify missing cover
-  return null;
+  // If no physical cover is available in assets, return a beautiful, unique placeholder cover featuring the book's title!
+  return `https://placehold.co/400x600/0f0f0f/a294fb?text=${encodeURIComponent(title || 'Bookora')}`;
 };
