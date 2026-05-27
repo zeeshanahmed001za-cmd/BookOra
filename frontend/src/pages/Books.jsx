@@ -9,23 +9,53 @@ import booksData from '../data/books.json';
 import { matchBookCover, fallbackImage } from '../utils/bookImages';
 import './Books.css';
 
-const GENRES       = ['All', 'Fiction', 'Self Help', 'Sci-Fi', 'Romance', 'History', 'Biography', 'Children', 'Mystery'];
+const GENRES       = ['All', 'Fiction', 'Non-Fiction', 'Science', 'Self Help', 'Sci-Fi', 'Romance', 'History', 'Biography', 'Children', 'Mystery'];
 const SORT_OPTIONS = ['Featured', 'Price: Low to High', 'Price: High to Low', 'Top Rated', 'Newest'];
 
-// Helper to map SubNav URL genres to local primary categories
 const mapUrlGenre = (genre) => {
   if (!genre) return 'All';
-  const g = genre.toLowerCase();
-  if (g.includes('fiction') || g === 'fantasy' || g === 'thriller' || g === 'adventure' || g === 'horror') return 'Fiction';
-  if (g.includes('selfhelp') || g.includes('self-help') || g === 'business' || g === 'philosophy' || g === 'psychology' || g === 'healthwellness' || g === 'travel' || g === 'truecrime' || g.includes('non-fiction')) return 'Self Help';
-  if (g === 'science' || g === 'sci-fi' || g === 'scifi' || g === 'technology' || g === 'mathematics' || g === 'engineering' || g === 'medical') return 'Sci-Fi';
-  if (g === 'history' || g === 'law') return 'History';
-  if (g === 'biography') return 'Biography';
-  if (g === 'children' || g.includes('reader') || g.includes('grade') || g.includes('ya') || g === 'fairytales' || g === 'mythology') return 'Children';
-  if (g === 'mystery') return 'Mystery';
+  const g = genre.toLowerCase().trim();
+  
+  if (g === 'all') return 'All';
+  if (g === 'fiction') return 'Fiction';
+  if (g === 'non-fiction' || g === 'nonfiction') return 'Non-Fiction';
+  if (g === 'science') return 'Science';
+  if (g === 'self help' || g === 'selfhelp') return 'Self Help';
+  if (g === 'sci-fi' || g === 'scifi') return 'Sci-Fi';
   if (g === 'romance') return 'Romance';
+  if (g === 'history') return 'History';
+  if (g === 'biography') return 'Biography';
+  if (g === 'children') return 'Children';
+  if (g === 'mystery') return 'Mystery';
+
+  // Subnav mega-menu mapping
+  // Fiction subcategories
+  if (['literaryfiction', 'fantasy', 'historicalfiction', 'horror', 'adventure', 'shortstories'].includes(g)) {
+    return 'Fiction';
+  }
+  if (['thriller', 'truecrime'].includes(g)) {
+    return 'Mystery';
+  }
+  // Non-fiction subcategories
+  if (['business', 'psychology', 'healthwellness'].includes(g)) {
+    return 'Self Help';
+  }
+  if (['philosophy', 'travel'].includes(g)) {
+    return 'Non-Fiction';
+  }
+  // Academic & learning maps to Non-Fiction
+  if (['textbooks', 'reference', 'studyguides', 'competitiveexams', 'technology', 'mathematics', 'engineering', 'medical', 'law', 'artscrafts'].includes(g)) {
+    return 'Non-Fiction';
+  }
+  // Children & YA
+  if (['picturebooks', 'earlyreaders', 'middlegrade', 'yafiction', 'yanonfiction', 'graphicnovels', 'activitybooks', 'educational', 'fairytales', 'mythology'].includes(g)) {
+    return 'Children';
+  }
+
   return 'All';
 };
+
+
 
 // ─── Stars ────────────────────────────────────────────────────────────────────
 const Stars = ({ rating }) => (
@@ -134,7 +164,15 @@ const Books = () => {
 
     // 2. Category / Genre filter
     if (activeGenre !== 'All') {
-      if (book.category !== activeGenre) return false;
+      if (activeGenre === 'Fiction') {
+        const fictionCategories = ['Fiction', 'Romance', 'Sci-Fi', 'Mystery', 'Children'];
+        if (!fictionCategories.includes(book.category)) return false;
+      } else if (activeGenre === 'Non-Fiction') {
+        const nonFictionCategories = ['Biography', 'History', 'Science', 'Self Help', 'Non-Fiction'];
+        if (!nonFictionCategories.includes(book.category)) return false;
+      } else {
+        if (book.category !== activeGenre) return false;
+      }
     }
 
     // 3. Price limit filter

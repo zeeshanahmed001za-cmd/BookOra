@@ -30,6 +30,20 @@ import stevejobs from '../assets/stevejobs.jpg';
 import thekite from '../assets/thekite.jpg';
 import themurderafter from '../assets/themurderafter.jpg';
 
+// Newly updated cover assets
+import astrophysicsforhurrypeople from '../assets/astrophysicsforhurrypeople.webp';
+import bravenewworld from '../assets/bravenewworld.webp';
+import circ from '../assets/circ.jpg';
+import cosmos from '../assets/cosmos.webp';
+import frankenstein from '../assets/frankenstein.jpg';
+import originspecies from '../assets/originspecies.jpg';
+import thinkingfastandslow from '../assets/thinkingfastandslow.jpg';
+import biglittlelies from '../assets/biglittlelies.webp';
+import davinvicode from '../assets/davinvicode.webp';
+import educated from '../assets/educated.webp';
+import gonegirl from '../assets/gonegirl.jpg';
+import silentpatient from '../assets/silentpatient.jpg';
+
 // Vite-friendly static cover assets registry
 export const bookImages = {
   alchemist,
@@ -60,7 +74,19 @@ export const bookImages = {
   silentspring,
   stevejobs,
   thekite,
-  themurderafter
+  themurderafter,
+  astrophysicsforhurrypeople,
+  bravenewworld,
+  circ,
+  cosmos,
+  frankenstein,
+  originspecies,
+  thinkingfastandslow,
+  biglittlelies,
+  davinvicode,
+  educated,
+  gonegirl,
+  silentpatient
 };
 
 export const fallbackImage = 'https://images.unsplash.com/photo-1543004218-2bc3500d970c?auto=format&fit=crop&q=80&w=400';

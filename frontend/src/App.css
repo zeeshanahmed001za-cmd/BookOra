@@ -5,10 +5,8 @@
   background-color: var(--bg-color);
 }
 
-/* 103px navbar + 46px sub-nav = 149px total offset */
 main {
   flex: 1;
-  padding-top: 149px;
 }
 
 .placeholder-page {
