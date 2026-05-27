@@ -1,17 +1,42 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, User, Heart, Search } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
 
 const Navbar = () => {
-  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const urlSearch = searchParams.get('search') || '';
 
-  const handleSearch = (e) => {
+  const [searchQuery, setSearchQuery] = useState(urlSearch);
+
+  // Sync search input value with URL search parameter changes
+  useEffect(() => {
+    setSearchQuery(urlSearch);
+  }, [urlSearch]);
+
+  const handleSearchChange = (val) => {
+    setSearchQuery(val);
+    if (location.pathname === '/books') {
+      const newParams = new URLSearchParams(window.location.search);
+      const trimmed = val.trim();
+      if (trimmed) {
+        newParams.set('search', trimmed);
+      } else {
+        newParams.delete('search');
+      }
+      navigate(`/books?${newParams.toString()}`, { replace: true });
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/books?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate('/books');
     }
   };
 
@@ -26,13 +51,13 @@ const Navbar = () => {
         </Link>
 
         {/* Center: Search Bar */}
-        <form onSubmit={handleSearch} className="nav-search-wrap">
+        <form onSubmit={handleSearchSubmit} className="nav-search-wrap">
           <input
             type="text"
             className="nav-search-input"
             placeholder="Enter Keyword To Search..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
           />
           <button type="submit" className="nav-search-btn" aria-label="Search">
             <Search size={18} />

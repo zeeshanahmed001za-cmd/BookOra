@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Star, ShoppingCart, Heart, Filter, ChevronDown,
-  X, Search,
-} from 'lucide-react';
-import booksData from '../data/books.json';
-import { matchBookCover, fallbackImage } from '../utils/bookImages';
+import { Filter, ChevronDown, X, Search, AlertCircle, Loader2 } from 'lucide-react';
+import useBooks from '../hooks/useBooks';
+import BookCard from '../components/BookCard';
+import { SkeletonGrid } from '../components/BookSkeleton';
 import './Books.css';
 
-const GENRES       = ['All', 'Fiction', 'Non-Fiction', 'Science', 'Self Help', 'Sci-Fi', 'Romance', 'History', 'Biography', 'Children', 'Mystery'];
+// ─── Constants ────────────────────────────────────────────────────────────────
+const GENRES = ['All', 'Fiction', 'Non-Fiction', 'Science', 'Self Help', 'Sci-Fi', 'Romance', 'History', 'Biography', 'Children', 'Mystery'];
 const SORT_OPTIONS = ['Featured', 'Price: Low to High', 'Price: High to Low', 'Top Rated', 'Newest'];
+const SEARCH_DEBOUNCE_MS = 400;
 
 const mapUrlGenre = (genre) => {
   if (!genre) return 'All';
   const g = genre.toLowerCase().trim();
-  
   if (g === 'all') return 'All';
   if (g === 'fiction') return 'Fiction';
   if (g === 'non-fiction' || g === 'nonfiction') return 'Non-Fiction';
@@ -27,101 +26,13 @@ const mapUrlGenre = (genre) => {
   if (g === 'biography') return 'Biography';
   if (g === 'children') return 'Children';
   if (g === 'mystery') return 'Mystery';
-
-  // Subnav mega-menu mapping
-  // Fiction subcategories
-  if (['literaryfiction', 'fantasy', 'historicalfiction', 'horror', 'adventure', 'shortstories'].includes(g)) {
-    return 'Fiction';
-  }
-  if (['thriller', 'truecrime'].includes(g)) {
-    return 'Mystery';
-  }
-  // Non-fiction subcategories
-  if (['business', 'psychology', 'healthwellness'].includes(g)) {
-    return 'Self Help';
-  }
-  if (['philosophy', 'travel'].includes(g)) {
-    return 'Non-Fiction';
-  }
-  // Academic & learning maps to Non-Fiction
-  if (['textbooks', 'reference', 'studyguides', 'competitiveexams', 'technology', 'mathematics', 'engineering', 'medical', 'law', 'artscrafts'].includes(g)) {
-    return 'Non-Fiction';
-  }
-  // Children & YA
-  if (['picturebooks', 'earlyreaders', 'middlegrade', 'yafiction', 'yanonfiction', 'graphicnovels', 'activitybooks', 'educational', 'fairytales', 'mythology'].includes(g)) {
-    return 'Children';
-  }
-
+  if (['literaryfiction','fantasy','historicalfiction','horror','adventure','shortstories'].includes(g)) return 'Fiction';
+  if (['thriller','truecrime'].includes(g)) return 'Mystery';
+  if (['business','psychology','healthwellness'].includes(g)) return 'Self Help';
+  if (['philosophy','travel'].includes(g)) return 'Non-Fiction';
+  if (['textbooks','reference','studyguides','competitiveexams','technology','mathematics','engineering','medical','law','artscrafts'].includes(g)) return 'Non-Fiction';
+  if (['picturebooks','earlyreaders','middlegrade','yafiction','yanonfiction','graphicnovels','activitybooks','educational','fairytales','mythology'].includes(g)) return 'Children';
   return 'All';
-};
-
-
-
-// ─── Stars ────────────────────────────────────────────────────────────────────
-const Stars = ({ rating }) => (
-  <div className="stars">
-    {[1, 2, 3, 4, 5].map((s) => (
-      <Star
-        key={s}
-        size={13}
-        fill={s <= Math.round(rating) ? 'currentColor' : 'none'}
-        stroke={s <= Math.round(rating) ? 'currentColor' : 'var(--text-dim)'}
-      />
-    ))}
-    <span className="rating-val">{rating}</span>
-  </div>
-);
-
-// ─── Book Card ────────────────────────────────────────────────────────────────
-const BookCard = ({ book, index }) => {
-  const [wishlisted, setWishlisted] = useState(false);
-  
-  // Dynamic reviews count based on book attributes
-  const reviewsCount = 100 + ((book.title.length * 73 + book.id * 37) % 4900);
-
-  return (
-    <motion.div
-      className="book-card"
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.4 }}
-      layout
-    >
-      <div className="book-cover">
-        <img
-          src={matchBookCover(book.cover, book.title) || fallbackImage}
-          alt={book.title}
-          loading="lazy"
-          onError={(e) => {
-            e.target.src = fallbackImage;
-          }}
-        />
-        {book.isBestseller && <span className="book-badge">Bestseller</span>}
-        <button
-          className={`wishlist-toggle ${wishlisted ? 'active' : ''}`}
-          onClick={() => setWishlisted(!wishlisted)}
-          title="Add to Wishlist"
-        >
-          <Heart size={17} fill={wishlisted ? 'currentColor' : 'none'} />
-        </button>
-      </div>
-
-      <div className="book-body">
-        <span className="book-genre">{book.category}</span>
-        <h3 className="book-title">{book.title}</h3>
-        <p className="book-author">by {book.author}</p>
-        <Stars rating={book.rating} />
-        <span className="book-reviews">({reviewsCount.toLocaleString()} reviews)</span>
-      </div>
-
-      <div className="book-footer">
-        <span className="book-price">₹{book.price.toFixed(2)}</span>
-        <button className="add-cart-btn">
-          <ShoppingCart size={15} /> Add to Cart
-        </button>
-      </div>
-    </motion.div>
-  );
 };
 
 // ─── Books Page ───────────────────────────────────────────────────────────────
@@ -129,106 +40,138 @@ const Books = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
   const urlGenre = searchParams.get('genre');
-  const urlBadge = searchParams.get('badge');
-  const urlSort = searchParams.get('sort');
+  const urlBadge = searchParams.get('badge') || '';
+  const urlSort  = searchParams.get('sort');
 
-  const [activeGenre,  setActiveGenre]  = useState('All');
-  const [sortBy,       setSortBy]       = useState('Featured');
-  const [showSort,     setShowSort]     = useState(false);
-  const [showFilters,  setShowFilters]  = useState(false);
-  const [priceRange,   setPriceRange]   = useState(50);
+  const [showSort,    setShowSort]    = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [priceRange,  setPriceRange]  = useState(50);
 
-  // Sync URL query parameters with local state variables
-  useEffect(() => {
-    if (urlGenre) {
-      setActiveGenre(mapUrlGenre(urlGenre));
-    }
-  }, [urlGenre]);
-
-  useEffect(() => {
-    if (urlSort) {
-      if (urlSort.toLowerCase() === 'newest') setSortBy('Newest');
-      if (urlSort.toLowerCase() === 'toprated') setSortBy('Top Rated');
-    }
+  // Single Source of Truth from URL params
+  const activeGenre = useMemo(() => mapUrlGenre(urlGenre), [urlGenre]);
+  
+  const sortBy = useMemo(() => {
+    const s = urlSort?.toLowerCase();
+    if (s === 'newest') return 'Newest';
+    if (s === 'toprated') return 'Top Rated';
+    if (s === 'price_asc' || s === 'price: low to high') return 'Price: Low to High';
+    if (s === 'price_desc' || s === 'price: high to low') return 'Price: High to Low';
+    return 'Featured';
   }, [urlSort]);
 
-  // ── Instant local filtering logic ───────────────────────────────────────────
-  const filtered = booksData.filter((book) => {
-    // 1. Search Query filter (title & author)
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const matchesTitle = book.title.toLowerCase().includes(q);
-      const matchesAuthor = book.author.toLowerCase().includes(q);
-      if (!matchesTitle && !matchesAuthor) return false;
+  // ── Debounced API query ───────────────────────────────────────────────────
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const debounceTimer = useRef(null);
+  
+  useEffect(() => {
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(
+      () => setDebouncedSearch(searchQuery),
+      searchQuery ? SEARCH_DEBOUNCE_MS : 0,
+    );
+    return () => clearTimeout(debounceTimer.current);
+  }, [searchQuery]);
+
+  // ── Resolve API query ─────────────────────────────────────────────────────
+  const apiQuery = useMemo(() => {
+    if (debouncedSearch.trim()) return debouncedSearch.trim();
+    if (activeGenre !== 'All')  return activeGenre;
+    if (urlBadge === 'Bestseller') return 'bestseller';
+    return 'classics';
+  }, [debouncedSearch, activeGenre, urlBadge]);
+
+  const { books, loading, error, retry } = useBooks(apiQuery, 24);
+
+  // ── Local filter + sort (instant, no extra fetches) ──────────────────────
+  const sorted = useMemo(() => {
+    let result = books;
+
+    // Genre filter only applies when searching (genre tab drives the API query otherwise)
+    if (debouncedSearch.trim() && activeGenre !== 'All') {
+      result = result.filter(book => {
+        const cat = book.category.toLowerCase();
+        if (activeGenre === 'Fiction') {
+          return ['fiction','romance','sci-fi','mystery','children','literature','novel'].some(c => cat.includes(c));
+        }
+        if (activeGenre === 'Non-Fiction') {
+          return ['biography','history','science','self help','non-fiction','academic'].some(c => cat.includes(c));
+        }
+        return cat.includes(activeGenre.toLowerCase());
+      });
     }
 
-    // 2. Category / Genre filter
-    if (activeGenre !== 'All') {
-      if (activeGenre === 'Fiction') {
-        const fictionCategories = ['Fiction', 'Romance', 'Sci-Fi', 'Mystery', 'Children'];
-        if (!fictionCategories.includes(book.category)) return false;
-      } else if (activeGenre === 'Non-Fiction') {
-        const nonFictionCategories = ['Biography', 'History', 'Science', 'Self Help', 'Non-Fiction'];
-        if (!nonFictionCategories.includes(book.category)) return false;
-      } else {
-        if (book.category !== activeGenre) return false;
-      }
+    // Price cap
+    result = result.filter(b => b.price <= priceRange);
+
+    // Badge filter
+    if (urlBadge?.toLowerCase() === 'bestseller') {
+      result = result.filter(b => b.isBestseller);
     }
 
-    // 3. Price limit filter
-    if (book.price > priceRange) return false;
+    // Sort
+    const arr = [...result];
+    if (sortBy === 'Price: Low to High') arr.sort((a, b) => a.price - b.price);
+    else if (sortBy === 'Price: High to Low') arr.sort((a, b) => b.price - a.price);
+    else if (sortBy === 'Top Rated') arr.sort((a, b) => b.rating - a.rating);
+    else if (sortBy === 'Newest')    arr.sort((a, b) => b.year - a.year);
 
-    // 4. Badge URL filter (e.g. bestseller)
-    if (urlBadge) {
-      if (urlBadge.toLowerCase() === 'bestseller') {
-        if (!book.isBestseller) return false;
-      }
+    return arr;
+  }, [books, debouncedSearch, activeGenre, priceRange, urlBadge, sortBy]);
+
+  const isSearchMode = debouncedSearch.trim().length > 0;
+  const hasBooks     = sorted.length > 0;
+
+  const handleGenreTabClick = useCallback((genre) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (genre === 'All') {
+      newParams.delete('genre');
+    } else {
+      newParams.set('genre', genre);
     }
+    newParams.delete('search'); // Clear search query when changing genre tab
+    setSearchParams(newParams);
+  }, [searchParams, setSearchParams]);
 
-    return true;
-  });
+  const handleSortChange = useCallback((opt) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (opt === 'Featured') {
+      newParams.delete('sort');
+    } else {
+      newParams.set('sort', opt);
+    }
+    setSearchParams(newParams);
+    setShowSort(false);
+  }, [searchParams, setSearchParams]);
 
-  // ── Instant local sorting logic ─────────────────────────────────────────────
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === 'Price: Low to High') return a.price - b.price;
-    if (sortBy === 'Price: High to Low') return b.price - a.price;
-    if (sortBy === 'Top Rated')          return b.rating - a.rating;
-    if (sortBy === 'Newest')             return b.year - a.year;
-    return 0; // Featured / Natural order
-  });
+  const handleClearSearch = useCallback(() => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('search');
+    setSearchParams(newParams);
+  }, [searchParams, setSearchParams]);
 
-  const bookCount = sorted.length;
-  const isSearchMode = searchQuery.trim().length > 0;
-
-  // Clear search function
-  const handleClearSearch = () => {
+  const handleResetAll = useCallback(() => {
     setSearchParams({});
-  };
-
-  // Reset all filters function
-  const handleResetAll = () => {
-    setSearchParams({});
-    setActiveGenre('All');
     setPriceRange(50);
-    setSortBy('Featured');
-  };
+  }, [setSearchParams]);
+
+  // ── Whether this is a "cold" first load (no data yet) or an overlay reload
+  const isColdLoad = loading && books.length === 0;
 
   return (
     <div className="books-page">
 
-      {/* ── Page Header ──────────────────────────────────────────────────── */}
+      {/* ── Page Header ── */}
       <div className="books-header">
         <div>
           <h1>
-            {isSearchMode ? (
-              <>Search Results for <span className="gradient-text">"{searchQuery}"</span></>
-            ) : (
-              <>Explore <span className="gradient-text">Books</span></>
-            )}
+            {isSearchMode
+              ? <><span>Search Results for </span><span className="gradient-text">"{debouncedSearch}"</span></>
+              : <><span>Explore </span><span className="gradient-text">Books</span></>
+            }
           </h1>
           <p className="books-subtitle">
-            {`${bookCount} ${bookCount === 1 ? 'book' : 'books'} found`}
-            {isSearchMode && (
+            {!loading && `${sorted.length} ${sorted.length === 1 ? 'book' : 'books'} found`}
+            {isSearchMode && !loading && (
               <button onClick={handleClearSearch} className="clear-search-link">
                 <X size={13} /> Clear Search
               </button>
@@ -236,17 +179,16 @@ const Books = () => {
           </p>
         </div>
 
-        {/* Controls — instant local controls */}
         <div className="books-controls">
           <button
             className={`filter-btn ${showFilters ? 'active' : ''}`}
-            onClick={() => setShowFilters(!showFilters)}
+            onClick={() => setShowFilters(s => !s)}
           >
             <Filter size={17} /> Filters {showFilters && <X size={15} />}
           </button>
 
           <div className="sort-wrap">
-            <button className="sort-btn" onClick={() => setShowSort(!showSort)}>
+            <button className="sort-btn" onClick={() => setShowSort(s => !s)}>
               Sort: {sortBy}
               <ChevronDown size={16} className={showSort ? 'rotated' : ''} />
             </button>
@@ -258,11 +200,11 @@ const Books = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                 >
-                  {SORT_OPTIONS.map((opt) => (
+                  {SORT_OPTIONS.map(opt => (
                     <li
                       key={opt}
                       className={opt === sortBy ? 'active' : ''}
-                      onClick={() => { setSortBy(opt); setShowSort(false); }}
+                      onClick={() => handleSortChange(opt)}
                     >
                       {opt}
                     </li>
@@ -274,7 +216,7 @@ const Books = () => {
         </div>
       </div>
 
-      {/* ── Filter Panel ─────────────────────────────────────────────────── */}
+      {/* ── Filter Panel ── */}
       <AnimatePresence>
         {showFilters && (
           <motion.div
@@ -286,10 +228,9 @@ const Books = () => {
             <div className="filter-section">
               <h4>Max Price: <span className="gradient-text">₹{priceRange}</span></h4>
               <input
-                type="range"
-                min={5} max={50}
+                type="range" min={5} max={50}
                 value={priceRange}
-                onChange={(e) => setPriceRange(Number(e.target.value))}
+                onChange={e => setPriceRange(Number(e.target.value))}
                 className="price-range"
               />
               <div className="price-labels"><span>₹5</span><span>₹50</span></div>
@@ -298,32 +239,60 @@ const Books = () => {
         )}
       </AnimatePresence>
 
-      {/* ── Genre Tabs ───────────────────────────────────────────────────── */}
+      {/* ── Genre Tabs ── */}
       <div className="genre-tabs">
-        {GENRES.map((g) => (
+        {GENRES.map(g => (
           <button
             key={g}
             className={`genre-tab ${activeGenre === g ? 'active' : ''}`}
-            onClick={() => setActiveGenre(g)}
+            onClick={() => handleGenreTabClick(g)}
           >
             {g}
           </button>
         ))}
       </div>
 
-      {/* ── Local Catalog Grid ───────────────────────────────────────────── */}
-      {sorted.length > 0 ? (
-        <motion.div className="books-grid" layout>
-          {sorted.map((book, i) => (
-            <BookCard key={book.id} book={book} index={i} />
-          ))}
-        </motion.div>
+      {/* ── Content Area ── */}
+      {error ? (
+        <div className="search-error-state glass">
+          <AlertCircle size={40} style={{ color: 'var(--accent-primary)', opacity: 0.7 }} />
+          <h3>Unable to Load Books</h3>
+          <p>{error}</p>
+          <button className="retry-search-btn" onClick={retry}>Retry</button>
+        </div>
+      ) : isColdLoad ? (
+        /* First load — show full skeleton grid */
+        <div className="books-loading-cold">
+          <div className="books-loading-spinner">
+            <Loader2 className="spin-icon" size={28} />
+            <span>Loading...</span>
+          </div>
+          <SkeletonGrid count={8} />
+        </div>
       ) : (
-        <div className="no-results">
-          <Search size={40} style={{ opacity: 0.3, marginBottom: '16px' }} />
-          <h3>No Books Found</h3>
-          <p>No books match your selected search keyword or filters.</p>
-          <button onClick={handleResetAll}>Reset All Filters</button>
+        /* Data present — show grid; overlay spinner for subsequent loads */
+        <div className="books-content-wrap">
+          {loading && (
+            <div className="books-overlay-spinner">
+              <Loader2 className="spin-icon" size={28} />
+              <span>Loading...</span>
+            </div>
+          )}
+
+          {hasBooks ? (
+            <motion.div className={`books-grid ${loading ? 'books-grid--faded' : ''}`} layout>
+              {sorted.map((book, i) => (
+                <BookCard key={book.id} book={book} index={i} />
+              ))}
+            </motion.div>
+          ) : !loading ? (
+            <div className="no-results">
+              <Search size={40} style={{ opacity: 0.3, marginBottom: '16px' }} />
+              <h3>No Books Found</h3>
+              <p>No books match your selected filters.</p>
+              <button onClick={handleResetAll}>Reset All Filters</button>
+            </div>
+          ) : null}
         </div>
       )}
     </div>

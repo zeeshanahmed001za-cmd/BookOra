@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight, ArrowUp } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ArrowUp, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import booksData from '../data/books.json';
-import { matchBookCover, fallbackImage } from '../utils/bookImages';
+import { fetchBooksByQuery } from '../services/openLibrary';
+import BookCoverImage from '../components/BookCoverImage';
 import './Home.css';
 
 // Import Hero Images
@@ -12,7 +12,7 @@ import hero2 from '../assets/hero_slide_2.png';
 import hero3 from '../assets/hero_slide_3.png';
 import hero4 from '../assets/hero_slide_4.png';
 
-// ─── Book Carousel (finite, no duplication, drag-to-scroll) ───────────────────
+// ─── Book Carousel ────────────────────────────────────────────────────────────
 const BookCarousel = ({ books }) => {
   const containerRef     = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -86,14 +86,10 @@ const BookCarousel = ({ books }) => {
               onClickCapture={handleItemClick}
             >
               <div className="book-cover-container">
-                <img
-                  src={matchBookCover(book.cover, book.title) || fallbackImage}
+                <BookCoverImage
+                  src={book.cover}
                   alt={book.title}
                   className="book-cover"
-                  draggable="false"
-                  onError={(e) => {
-                    e.target.src = fallbackImage;
-                  }}
                 />
               </div>
               <div className="book-info">
@@ -109,23 +105,55 @@ const BookCarousel = ({ books }) => {
   );
 };
 
+// ─── Carousel Shimmer Skeleton ────────────────────────────────────────────────
+const CarouselSkeleton = () => (
+  <div className="carousel-wrapper">
+    <div className="carousel-container">
+      <div className="carousel-track">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="book-item shimmer-item">
+            <div className="book-cover-container shimmer-bg" />
+            <div className="book-info">
+              <div className="shimmer-line title shimmer-bg" />
+              <div className="shimmer-line author shimmer-bg" />
+              <div className="shimmer-line price shimmer-bg" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Carousel Error Notice ────────────────────────────────────────────────────
+const CarouselError = ({ message, onRetry }) => (
+  <div className="carousel-api-error">
+    <AlertCircle className="error-icon" size={32} />
+    <p>{message}</p>
+    <button className="retry-btn" onClick={onRetry}>Retry Loading</button>
+  </div>
+);
+
 // ─── Home Component ───────────────────────────────────────────────────────────
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showScroll,   setShowScroll]   = useState(false);
   const navigate = useNavigate();
 
-  // Curated category datasets — strictly filtered with zero duplicates
-  const bestSellers = booksData.filter(book => book.isBestseller).slice(0, 15);
-  const fictionBooks = booksData.filter(book => book.category === 'Fiction').slice(0, 15);
-  const selfHelpBooks = booksData.filter(book => book.category === 'Self Help').slice(0, 15);
-  const sciFiBooks = booksData.filter(book => book.category === 'Sci-Fi').slice(0, 15);
+  // API states
+  const [bestSellers, setBestSellers] = useState([]);
+  const [fictionBooks, setFictionBooks] = useState([]);
+  const [selfHelpBooks, setSelfHelpBooks] = useState([]);
+  const [sciFiBooks, setSciFiBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   const slides = [
     { id: 1, image: hero1, title: 'Discover Your Next',  subtitle: 'Great Adventure',   desc: 'Explore our curated collection of books from worldwide authors. From timeless classics to modern masterpieces.' },
     { id: 2, image: hero2, title: 'Lose Yourself in',    subtitle: 'Epic Stories',       desc: 'Immerse yourself in captivating narratives that transport you to different worlds and eras.' },
-    { id: 3, image: image => hero3, imagePath: hero3, title: 'The Ultimate',         subtitle: 'Readers Paradise',   desc: 'A luxury catalog of bestsellers and hidden gems waiting to be discovered on your bookshelves.' },
-    { id: 4, image: image => hero4, imagePath: hero4, title: 'Rare Classics &',     subtitle: 'Timeless Wisdom',    desc: 'Curated vintage editions and leather-bound masterpieces for the true bibliophile and collector.' },
+    { id: 3, image: hero3, imagePath: hero3, title: 'The Ultimate',         subtitle: 'Readers Paradise',   desc: 'A luxury catalog of bestsellers and hidden gems waiting to be discovered on your bookshelves.' },
+    { id: 4, image: hero4, imagePath: hero4, title: 'Rare Classics &',     subtitle: 'Timeless Wisdom',    desc: 'Curated vintage editions and leather-bound masterpieces for the true bibliophile and collector.' },
   ];
 
   const paginate   = (dir) => setCurrentSlide((prev) => (prev + dir + slides.length) % slides.length);
@@ -134,18 +162,60 @@ const Home = () => {
 
   // Auto-slide
   useEffect(() => {
-    const timer = setInterval(nextSlide, 6000);
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 6000);
     return () => clearInterval(timer);
-  }, [currentSlide]);
+  }, [slides.length]);
 
   // Scroll-to-top button
   useEffect(() => {
     const onScroll = () => {
-      setShowScroll(window.pageYOffset > 400);
+      setShowScroll(window.scrollY > 400);
     };
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Fetch home sections from Open Library API
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchHomeBooks = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [bestSellersRes, fictionRes, selfHelpRes, sciFiRes] = await Promise.all([
+          fetchBooksByQuery('bestseller', 12),
+          fetchBooksByQuery('fiction', 12),
+          fetchBooksByQuery('self-help', 12),
+          fetchBooksByQuery('sci-fi', 12)
+        ]);
+
+        if (isMounted) {
+          setBestSellers(bestSellersRes);
+          setFictionBooks(fictionRes);
+          setSelfHelpBooks(selfHelpRes);
+          setSciFiBooks(sciFiRes);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error('Error fetching home library data:', err);
+          setError('Failed to retrieve book collections. Please check your connection.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchHomeBooks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [retryTrigger]);
 
   const scrollToHero = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -156,6 +226,10 @@ const Home = () => {
 
   const navigateToBestsellers = () => {
     navigate('/books?badge=Bestseller');
+  };
+
+  const handleRetry = () => {
+    setRetryTrigger(prev => prev + 1);
   };
 
   return (
@@ -225,7 +299,13 @@ const Home = () => {
             <button className="view-all-btn" onClick={navigateToBestsellers}>View All <ArrowRight size={16} /></button>
           </div>
 
-          <BookCarousel books={bestSellers} />
+          {loading ? (
+            <CarouselSkeleton />
+          ) : error ? (
+            <CarouselError message={error} onRetry={handleRetry} />
+          ) : (
+            <BookCarousel books={bestSellers} />
+          )}
         </div>
       </section>
 
@@ -240,7 +320,13 @@ const Home = () => {
             <button className="view-all-btn" onClick={() => navigateToCategory('Fiction')}>Browse Fiction <ArrowRight size={16} /></button>
           </div>
 
-          <BookCarousel books={fictionBooks} />
+          {loading ? (
+            <CarouselSkeleton />
+          ) : error ? (
+            <CarouselError message={error} onRetry={handleRetry} />
+          ) : (
+            <BookCarousel books={fictionBooks} />
+          )}
         </div>
       </section>
 
@@ -255,7 +341,13 @@ const Home = () => {
             <button className="view-all-btn" onClick={() => navigateToCategory('Self Help')}>Explore Growth <ArrowRight size={16} /></button>
           </div>
 
-          <BookCarousel books={selfHelpBooks} />
+          {loading ? (
+            <CarouselSkeleton />
+          ) : error ? (
+            <CarouselError message={error} onRetry={handleRetry} />
+          ) : (
+            <BookCarousel books={selfHelpBooks} />
+          )}
         </div>
       </section>
 
@@ -270,7 +362,13 @@ const Home = () => {
             <button className="view-all-btn" onClick={() => navigateToCategory('Sci-Fi')}>Discover Sci-Fi <ArrowRight size={16} /></button>
           </div>
 
-          <BookCarousel books={sciFiBooks} />
+          {loading ? (
+            <CarouselSkeleton />
+          ) : error ? (
+            <CarouselError message={error} onRetry={handleRetry} />
+          ) : (
+            <BookCarousel books={sciFiBooks} />
+          )}
         </div>
       </section>
 

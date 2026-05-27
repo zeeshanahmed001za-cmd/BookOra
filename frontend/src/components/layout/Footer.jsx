@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Globe, AtSign, Camera, Video, Mail, MapPin, Phone, Send } from 'lucide-react';
 import './Footer.css';

@@ -1,0 +1,167 @@
+/* ── BookCard ── */
+.book-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.book-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(162, 148, 251, 0.4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(162, 148, 251, 0.1);
+}
+
+/* ── Cover area — fixed aspect ratio prevents layout shift ── */
+.bc-cover-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+/* Scale the actual <img> on hover (BookCoverImage .book-cover-img) */
+.book-card:hover .book-cover-img {
+  transform: scale(1.08);
+}
+
+/* ── Bestseller badge ── */
+.bc-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--accent-gradient);
+  color: #fff;
+  pointer-events: none;
+}
+
+/* ── Wishlist toggle ── */
+.bc-wishlist {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(5, 5, 5, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.2s, transform 0.2s, color 0.2s;
+}
+
+.book-card:hover .bc-wishlist {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.bc-wishlist.active {
+  color: #ff4d6d;
+  opacity: 1;
+}
+
+/* ── Body ── */
+.bc-body {
+  padding: 14px 14px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bc-category {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.bc-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bc-author {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.bc-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #f9a825;
+  margin-top: 5px;
+}
+
+.bc-rating-val {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+.bc-reviews {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+/* ── Footer ── */
+.bc-footer {
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.bc-price {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.bc-cart-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  background: var(--accent-gradient);
+  border-radius: 30px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.bc-cart-btn:hover {
+  opacity: 0.85;
+  transform: scale(1.04);
+}
