@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ChevronLeft, ChevronRight, ArrowUp, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchBooksByQuery } from '../services/openLibrary';
+import { mergePricing } from '../utils/pricing';
 import BookCoverImage from '../components/BookCoverImage';
 import './Home.css';
 
@@ -193,10 +194,10 @@ const Home = () => {
         ]);
 
         if (isMounted) {
-          setBestSellers(bestSellersRes);
-          setFictionBooks(fictionRes);
-          setSelfHelpBooks(selfHelpRes);
-          setSciFiBooks(sciFiRes);
+          setBestSellers(bestSellersRes.map(mergePricing));
+          setFictionBooks(fictionRes.map(mergePricing));
+          setSelfHelpBooks(selfHelpRes.map(mergePricing));
+          setSciFiBooks(sciFiRes.map(mergePricing));
         }
       } catch (err) {
         if (isMounted) {

@@ -45,7 +45,7 @@ const Books = () => {
 
   const [showSort,    setShowSort]    = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [priceRange,  setPriceRange]  = useState(50);
+  const [priceRange,  setPriceRange]  = useState(1000);
 
   // Single Source of Truth from URL params
   const activeGenre = useMemo(() => mapUrlGenre(urlGenre), [urlGenre]);
@@ -151,7 +151,7 @@ const Books = () => {
 
   const handleResetAll = useCallback(() => {
     setSearchParams({});
-    setPriceRange(50);
+    setPriceRange(1000);
   }, [setSearchParams]);
 
   // ── Whether this is a "cold" first load (no data yet) or an overlay reload
@@ -228,12 +228,12 @@ const Books = () => {
             <div className="filter-section">
               <h4>Max Price: <span className="gradient-text">₹{priceRange}</span></h4>
               <input
-                type="range" min={5} max={50}
+                type="range" min={100} max={1000} step={50}
                 value={priceRange}
                 onChange={e => setPriceRange(Number(e.target.value))}
                 className="price-range"
               />
-              <div className="price-labels"><span>₹5</span><span>₹50</span></div>
+              <div className="price-labels"><span>₹100</span><span>₹1000</span></div>
             </div>
           </motion.div>
         )}
