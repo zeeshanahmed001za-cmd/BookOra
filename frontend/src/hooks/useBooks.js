@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchBooksByQuery, invalidateCache, getCachedBooks } from '../services/openLibrary';
+import { mergePricing } from '../utils/pricing';
 
 /**
  * Custom hook — fetches books from Open Library with:
  * - Centralized service-level caching
+ * - Pricing merged via internal prices.json (no random pricing)
  * - Overlay loading (keeps previous results visible while fetching)
  * - Synchronous cache resolution to prevent flashing
  * - Proper stale-state cancellation
@@ -53,10 +55,12 @@ const useBooks = (query, limit = 24) => {
 
     const load = async () => {
       try {
-        const data = await fetchBooksByQuery(trimmed, limit);
+        const rawBooks = await fetchBooksByQuery(trimmed, limit);
         if (token.cancelled) return;
 
-        setBooks(data);
+        // Merge internal pricing into every book object
+        const pricedBooks = rawBooks.map(mergePricing);
+        setBooks(pricedBooks);
       } catch (err) {
         if (token.cancelled) return;
         setError(err.message || 'Failed to load books.');

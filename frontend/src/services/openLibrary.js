@@ -39,25 +39,27 @@ const mapCategory = (subjects = []) => {
 };
 
 // ─── Data Cleaner ─────────────────────────────────────────────────────────────
+// NOTE: pricing fields (price, originalPrice, discount, stock) are NOT set here.
+// They are injected by mergePricing() in utils/pricing.js after this transform.
 
 const toBook = (doc) => {
   const key  = doc.key || '';
   const hash = djb2Hash(key || doc.title);
 
   return {
-    id:          key.replace('/works/', '') || `ol-${hash}`,
+    id:           key.replace('/works/', '') || `ol-${hash}`,
     key,
-    title:       doc.title || 'Untitled',
-    author:      Array.isArray(doc.author_name) ? doc.author_name.slice(0, 2).join(', ') : 'Unknown Author',
-    cover:       buildCoverUrl(doc.cover_i, 'L'),   // Large cover for quality
-    coverId:     doc.cover_i || null,
-    year:        doc.first_publish_year || (Array.isArray(doc.publish_year) ? doc.publish_year[0] : null) || null,
-    category:    mapCategory(doc.subject),
-    // Stable mock fields (Open Library doesn't provide these)
-    rating:      parseFloat((4.0 + (hash % 11) / 10).toFixed(1)),
-    price:       parseFloat((8 + (hash % 41) + (hash % 100) / 100).toFixed(2)),
+    title:        doc.title || 'Untitled',
+    author:       Array.isArray(doc.author_name) ? doc.author_name.slice(0, 2).join(', ') : 'Unknown Author',
+    cover:        buildCoverUrl(doc.cover_i, 'L'),
+    coverId:      doc.cover_i || null,
+    year:         doc.first_publish_year || (Array.isArray(doc.publish_year) ? doc.publish_year[0] : null) || null,
+    category:     mapCategory(doc.subject),
+    subjects:     Array.isArray(doc.subject) ? doc.subject.slice(0, 6) : [],
+    editionCount: doc.edition_count || null,
+    // Stable rating (not random — hash-derived so it never changes for same book)
+    rating:       parseFloat((4.0 + (hash % 11) / 10).toFixed(1)),
     isBestseller: hash % 4 === 0,
-    pages:       120 + (hash % 500),
   };
 };
 
@@ -65,6 +67,9 @@ const toBook = (doc) => {
 
 /**
  * Search Open Library by any query string with caching.
+ * Returns books WITHOUT pricing — call mergePricing() from utils/pricing.js
+ * to attach price, originalPrice, discount, stock, availability.
+ *
  * @param {string} query   - Search term (title, author, genre, etc.)
  * @param {number} limit   - Max results (default 24)
  * @returns {Promise<Book[]>}
@@ -73,13 +78,13 @@ export const fetchBooksByQuery = async (query, limit = 24) => {
   if (!query?.trim()) return [];
 
   const trimmedQuery = query.trim();
-  const cacheKey = `${trimmedQuery.toLowerCase()}:${limit}`;
+  const cacheKey = `search:${trimmedQuery.toLowerCase()}:${limit}`;
 
   if (apiCache.has(cacheKey)) {
     return apiCache.get(cacheKey);
   }
 
-  const url = `${BASE_URL}/search.json?q=${encodeURIComponent(trimmedQuery)}&fields=key,title,author_name,cover_i,first_publish_year,publish_year,subject&limit=${limit}`;
+  const url = `${BASE_URL}/search.json?q=${encodeURIComponent(trimmedQuery)}&fields=key,title,author_name,cover_i,first_publish_year,publish_year,subject,edition_count&limit=${limit}`;
 
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Open Library API error: ${response.status}`);
@@ -88,7 +93,7 @@ export const fetchBooksByQuery = async (query, limit = 24) => {
   if (!Array.isArray(data.docs)) return [];
 
   const books = data.docs
-    .filter(doc => doc.title)          // skip docs with no title
+    .filter(doc => doc.title)
     .map(toBook);
 
   apiCache.set(cacheKey, books);
@@ -96,19 +101,68 @@ export const fetchBooksByQuery = async (query, limit = 24) => {
 };
 
 /**
- * Invalidate a specific query/limit from the API cache.
+ * Fetch extended details for a single work from Open Library Works API.
+ * Returns description, subjects, links, etc. for use in BookModal/BookDetails.
+ * Results are cached to avoid redundant fetches on repeated opens.
+ *
+ * @param {string} workId - Open Library Work ID (e.g. "OL82563W")
+ * @returns {Promise<object>} Extended work details
+ */
+export const fetchBookDetails = async (workId) => {
+  if (!workId) return null;
+
+  const cacheKey = `work:${workId}`;
+  if (apiCache.has(cacheKey)) {
+    return apiCache.get(cacheKey);
+  }
+
+  const url = `${BASE_URL}/works/${workId}.json`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Open Library Works API error: ${response.status}`);
+
+  const data = await response.json();
+
+  // Normalize description (can be a string or {type, value} object)
+  const rawDesc = data.description;
+  const description =
+    typeof rawDesc === 'string'
+      ? rawDesc
+      : typeof rawDesc === 'object' && rawDesc?.value
+        ? rawDesc.value
+        : null;
+
+  // Normalize subjects
+  const subjects = Array.isArray(data.subjects)
+    ? data.subjects.slice(0, 10)
+    : [];
+
+  const details = {
+    workId,
+    description,
+    subjects,
+    links:         Array.isArray(data.links) ? data.links : [],
+    firstPublishDate: data.first_publish_date || null,
+    created:       data.created?.value || null,
+  };
+
+  apiCache.set(cacheKey, details);
+  return details;
+};
+
+/**
+ * Invalidate a specific search query/limit from the API cache.
  */
 export const invalidateCache = (query, limit = 24) => {
   if (!query) return;
-  const cacheKey = `${query.trim().toLowerCase()}:${limit}`;
+  const cacheKey = `search:${query.trim().toLowerCase()}:${limit}`;
   apiCache.delete(cacheKey);
 };
 
 /**
- * Retrieve cached books synchronously if available.
+ * Retrieve cached search books synchronously if available.
  */
 export const getCachedBooks = (query, limit = 24) => {
   if (!query) return null;
-  const cacheKey = `${query.trim().toLowerCase()}:${limit}`;
+  const cacheKey = `search:${query.trim().toLowerCase()}:${limit}`;
   return apiCache.get(cacheKey) || null;
 };
