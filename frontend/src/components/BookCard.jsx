@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star, ShoppingCart, Heart } from 'lucide-react';
+import { useWishlist } from '../contexts/WishlistContext';
 import BookCoverImage from './BookCoverImage';
 import './BookCard.css';
 
@@ -21,7 +21,9 @@ const Stars = ({ rating }) => (
 
 // ─── BookCard ─────────────────────────────────────────────────────────────────
 const BookCard = ({ book, index = 0 }) => {
-  const [wishlisted, setWishlisted] = useState(false);
+  const { toggleWishlist, isWishlisted, setSelectedBook } = useWishlist();
+
+  const wishlisted = isWishlisted(book.id);
 
   // Stable pseudo-review count derived from title length
   const reviews = 100 + ((book.title.length * 73 + book.id.length * 37) % 4900);
@@ -35,7 +37,7 @@ const BookCard = ({ book, index = 0 }) => {
       layout
     >
       {/* ── Cover ── */}
-      <div className="bc-cover-wrap">
+      <div className="bc-cover-wrap" onClick={() => setSelectedBook(book)}>
         <BookCoverImage src={book.cover} alt={book.title} />
 
         {book.isBestseller && (
@@ -44,7 +46,10 @@ const BookCard = ({ book, index = 0 }) => {
 
         <button
           className={`bc-wishlist ${wishlisted ? 'active' : ''}`}
-          onClick={() => setWishlisted(w => !w)}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(book);
+          }}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
           <Heart size={16} fill={wishlisted ? 'currentColor' : 'none'} />
@@ -52,7 +57,7 @@ const BookCard = ({ book, index = 0 }) => {
       </div>
 
       {/* ── Body ── */}
-      <div className="bc-body">
+      <div className="bc-body" onClick={() => setSelectedBook(book)}>
         <span className="bc-category">{book.category}</span>
         <h3 className="bc-title">{book.title}</h3>
         <p className="bc-author">by {book.author}</p>

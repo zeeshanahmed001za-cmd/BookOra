@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight, ArrowUp, AlertCircle } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ArrowUp, AlertCircle, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchBooksByQuery } from '../services/openLibrary';
 import { mergePricing } from '../utils/pricing';
+import { useWishlist } from '../contexts/WishlistContext';
 import BookCoverImage from '../components/BookCoverImage';
 import './Home.css';
 
@@ -20,6 +21,8 @@ const BookCarousel = ({ books }) => {
   const startX           = useRef(0);
   const scrollLeftStart  = useRef(0);
   const hasMoved         = useRef(false);
+
+  const { toggleWishlist, isWishlisted, setSelectedBook } = useWishlist();
 
   const handleArrowScroll = (direction) => {
     if (containerRef.current) {
@@ -80,26 +83,44 @@ const BookCarousel = ({ books }) => {
         onMouseLeave={handleMouseUpOrLeave}
       >
         <div className="carousel-track">
-          {books.map((book) => (
-            <div
-              key={book.id}
-              className="book-item"
-              onClickCapture={handleItemClick}
-            >
-              <div className="book-cover-container">
-                <BookCoverImage
-                  src={book.cover}
-                  alt={book.title}
-                  className="book-cover"
-                />
+          {books.map((book) => {
+            const wishlisted = isWishlisted(book.id);
+            return (
+              <div
+                key={book.id}
+                className="book-item"
+                onClickCapture={handleItemClick}
+                onClick={() => setSelectedBook(book)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="book-cover-container">
+                  <BookCoverImage
+                    src={book.cover}
+                    alt={book.title}
+                    className="book-cover"
+                  />
+                  {book.isBestseller && (
+                    <span className="bc-badge" style={{ zIndex: 2 }}>Bestseller</span>
+                  )}
+                  <button
+                    className={`bc-wishlist ${wishlisted ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleWishlist(book);
+                    }}
+                    aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                  >
+                    <Heart size={16} fill={wishlisted ? 'currentColor' : 'none'} />
+                  </button>
+                </div>
+                <div className="book-info">
+                  <h3 className="book-title">{book.title}</h3>
+                  <p  className="book-author">{book.author}</p>
+                  <span className="book-price">₹{book.price.toFixed(2)}</span>
+                </div>
               </div>
-              <div className="book-info">
-                <h3 className="book-title">{book.title}</h3>
-                <p  className="book-author">{book.author}</p>
-                <span className="book-price">₹{book.price.toFixed(2)}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

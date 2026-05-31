@@ -23,6 +23,7 @@
   overflow: hidden;
   background: var(--bg-elevated);
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 /* Scale the actual <img> on hover (BookCoverImage .book-cover-img) */
@@ -49,30 +50,37 @@
 /* ── Wishlist toggle ── */
 .bc-wishlist {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  bottom: 12px;
+  right: 12px;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   background: rgba(5, 5, 5, 0.65);
   backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  opacity: 0;
-  transform: scale(0.8);
-  transition: opacity 0.2s, transform 0.2s, color 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
 }
 
-.book-card:hover .bc-wishlist {
-  opacity: 1;
-  transform: scale(1);
+.bc-wishlist:hover {
+  transform: scale(1.1);
+  color: var(--text-primary);
+  background: rgba(15, 15, 15, 0.85);
 }
 
 .bc-wishlist.active {
   color: #ff4d6d;
-  opacity: 1;
+  background: rgba(255, 77, 109, 0.15);
+  border-color: rgba(255, 77, 109, 0.3);
+}
+
+.bc-wishlist.active:hover {
+  background: rgba(255, 77, 109, 0.25);
+  transform: scale(1.15);
 }
 
 /* ── Body ── */
@@ -82,6 +90,7 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+  cursor: pointer;
 }
 
 .bc-category {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, User, Heart, Search } from 'lucide-react';
+import { useWishlist } from '../../contexts/WishlistContext';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
 
@@ -9,6 +10,8 @@ const Navbar = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const urlSearch = searchParams.get('search') || '';
+
+  const { wishlist } = useWishlist();
 
   const [searchQuery, setSearchQuery] = useState(urlSearch);
 
@@ -69,6 +72,9 @@ const Navbar = () => {
         <div className="nav-actions">
           <Link to="/wishlist" className="nav-icon-btn" title="My Favorites">
             <Heart size={24} />
+            {wishlist.length > 0 && (
+              <span className="wishlist-badge">{wishlist.length}</span>
+            )}
           </Link>
 
           <Link to="/auth" className="nav-icon-btn" title="Account">

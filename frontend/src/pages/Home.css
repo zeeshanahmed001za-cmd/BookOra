@@ -323,6 +323,7 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   background: #121212;
+  position: relative;
 }
 
 .book-item:hover .book-cover-container {
