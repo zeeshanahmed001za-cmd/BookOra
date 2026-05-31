@@ -8,6 +8,44 @@ export const FALLBACK_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.o
 
 // Centralized API Cache
 const apiCache = new Map();
+const CACHE_PREFIX = 'bookora-api-cache';
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+
+// Helper to get from local storage cache
+const getLocalStorageCache = (key) => {
+  try {
+    const itemStr = localStorage.getItem(`${CACHE_PREFIX}:${key}`);
+    if (!itemStr) return null;
+    const item = JSON.parse(itemStr);
+    if (Date.now() > item.expiry) {
+      localStorage.removeItem(`${CACHE_PREFIX}:${key}`);
+      return null;
+    }
+    return item.value;
+  } catch (e) {
+    return null;
+  }
+};
+
+// Helper to set local storage cache
+const setLocalStorageCache = (key, value) => {
+  try {
+    const item = {
+      value,
+      expiry: Date.now() + CACHE_TTL_MS,
+    };
+    localStorage.setItem(`${CACHE_PREFIX}:${key}`, JSON.stringify(item));
+  } catch (e) {
+    // Silent fail if quota exceeded
+  }
+};
+
+// Helper to remove local storage cache
+const removeLocalStorageCache = (key) => {
+  try {
+    localStorage.removeItem(`${CACHE_PREFIX}:${key}`);
+  } catch (e) {}
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -84,6 +122,12 @@ export const fetchBooksByQuery = async (query, limit = 24) => {
     return apiCache.get(cacheKey);
   }
 
+  const localCached = getLocalStorageCache(cacheKey);
+  if (localCached) {
+    apiCache.set(cacheKey, localCached);
+    return localCached;
+  }
+
   const url = `${BASE_URL}/search.json?q=${encodeURIComponent(trimmedQuery)}&fields=key,title,author_name,cover_i,first_publish_year,publish_year,subject,edition_count&limit=${limit}`;
 
   const response = await fetch(url);
@@ -97,6 +141,7 @@ export const fetchBooksByQuery = async (query, limit = 24) => {
     .map(toBook);
 
   apiCache.set(cacheKey, books);
+  setLocalStorageCache(cacheKey, books);
   return books;
 };
 
@@ -114,6 +159,12 @@ export const fetchBookDetails = async (workId) => {
   const cacheKey = `work:${workId}`;
   if (apiCache.has(cacheKey)) {
     return apiCache.get(cacheKey);
+  }
+
+  const localCached = getLocalStorageCache(cacheKey);
+  if (localCached) {
+    apiCache.set(cacheKey, localCached);
+    return localCached;
   }
 
   const url = `${BASE_URL}/works/${workId}.json`;
@@ -146,6 +197,7 @@ export const fetchBookDetails = async (workId) => {
   };
 
   apiCache.set(cacheKey, details);
+  setLocalStorageCache(cacheKey, details);
   return details;
 };
 
@@ -156,6 +208,7 @@ export const invalidateCache = (query, limit = 24) => {
   if (!query) return;
   const cacheKey = `search:${query.trim().toLowerCase()}:${limit}`;
   apiCache.delete(cacheKey);
+  removeLocalStorageCache(cacheKey);
 };
 
 /**
@@ -164,5 +217,13 @@ export const invalidateCache = (query, limit = 24) => {
 export const getCachedBooks = (query, limit = 24) => {
   if (!query) return null;
   const cacheKey = `search:${query.trim().toLowerCase()}:${limit}`;
-  return apiCache.get(cacheKey) || null;
+  if (apiCache.has(cacheKey)) {
+    return apiCache.get(cacheKey);
+  }
+  const localCached = getLocalStorageCache(cacheKey);
+  if (localCached) {
+    apiCache.set(cacheKey, localCached);
+    return localCached;
+  }
+  return null;
 };

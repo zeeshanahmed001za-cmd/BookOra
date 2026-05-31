@@ -185,20 +185,25 @@ const Home = () => {
     const fetchHomeBooks = async () => {
       setLoading(true);
       setError(null);
-      try {
-        const [bestSellersRes, fictionRes, selfHelpRes, sciFiRes] = await Promise.all([
-          fetchBooksByQuery('bestseller', 12),
-          fetchBooksByQuery('fiction', 12),
-          fetchBooksByQuery('self-help', 12),
-          fetchBooksByQuery('sci-fi', 12)
-        ]);
 
-        if (isMounted) {
-          setBestSellers(bestSellersRes.map(mergePricing));
-          setFictionBooks(fictionRes.map(mergePricing));
-          setSelfHelpBooks(selfHelpRes.map(mergePricing));
-          setSciFiBooks(sciFiRes.map(mergePricing));
+      const fetchSection = async (query, setter) => {
+        try {
+          const res = await fetchBooksByQuery(query, 12);
+          if (isMounted) {
+            setter(res.map(mergePricing));
+          }
+        } catch (err) {
+          console.error(`Error fetching home category '${query}':`, err);
         }
+      };
+
+      try {
+        await Promise.all([
+          fetchSection('bestseller', setBestSellers),
+          fetchSection('fiction', setFictionBooks),
+          fetchSection('self-help', setSelfHelpBooks),
+          fetchSection('sci-fi', setSciFiBooks)
+        ]);
       } catch (err) {
         if (isMounted) {
           console.error('Error fetching home library data:', err);
@@ -300,9 +305,9 @@ const Home = () => {
             <button className="view-all-btn" onClick={navigateToBestsellers}>View All <ArrowRight size={16} /></button>
           </div>
 
-          {loading ? (
+          {bestSellers.length === 0 && loading ? (
             <CarouselSkeleton />
-          ) : error ? (
+          ) : error && bestSellers.length === 0 ? (
             <CarouselError message={error} onRetry={handleRetry} />
           ) : (
             <BookCarousel books={bestSellers} />
@@ -321,9 +326,9 @@ const Home = () => {
             <button className="view-all-btn" onClick={() => navigateToCategory('Fiction')}>Browse Fiction <ArrowRight size={16} /></button>
           </div>
 
-          {loading ? (
+          {fictionBooks.length === 0 && loading ? (
             <CarouselSkeleton />
-          ) : error ? (
+          ) : error && fictionBooks.length === 0 ? (
             <CarouselError message={error} onRetry={handleRetry} />
           ) : (
             <BookCarousel books={fictionBooks} />
@@ -342,9 +347,9 @@ const Home = () => {
             <button className="view-all-btn" onClick={() => navigateToCategory('Self Help')}>Explore Growth <ArrowRight size={16} /></button>
           </div>
 
-          {loading ? (
+          {selfHelpBooks.length === 0 && loading ? (
             <CarouselSkeleton />
-          ) : error ? (
+          ) : error && selfHelpBooks.length === 0 ? (
             <CarouselError message={error} onRetry={handleRetry} />
           ) : (
             <BookCarousel books={selfHelpBooks} />
@@ -363,9 +368,9 @@ const Home = () => {
             <button className="view-all-btn" onClick={() => navigateToCategory('Sci-Fi')}>Discover Sci-Fi <ArrowRight size={16} /></button>
           </div>
 
-          {loading ? (
+          {sciFiBooks.length === 0 && loading ? (
             <CarouselSkeleton />
-          ) : error ? (
+          ) : error && sciFiBooks.length === 0 ? (
             <CarouselError message={error} onRetry={handleRetry} />
           ) : (
             <BookCarousel books={sciFiBooks} />
