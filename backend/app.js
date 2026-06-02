@@ -3,8 +3,6 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
 const hpp = require('hpp');
 
 const AppError = require('./src/utils/appError');
@@ -33,10 +31,42 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10kb' }));
 
 // Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
+const cleanObj = (obj) => {
+  if (obj && typeof obj === 'object') {
+    for (const key in obj) {
+      if (key.startsWith('$') || key.includes('.')) {
+        delete obj[key];
+      } else if (typeof obj[key] === 'object') {
+        cleanObj(obj[key]);
+      }
+    }
+  }
+};
+app.use((req, res, next) => {
+  cleanObj(req.body);
+  cleanObj(req.query);
+  cleanObj(req.params);
+  next();
+});
 
 // Data sanitization against XSS
-app.use(xss());
+const cleanXSS = (obj) => {
+  if (obj && typeof obj === 'object') {
+    for (const key in obj) {
+      if (typeof obj[key] === 'string') {
+        obj[key] = obj[key].replace(/<[^>]*>/g, '');
+      } else if (typeof obj[key] === 'object') {
+        cleanXSS(obj[key]);
+      }
+    }
+  }
+};
+app.use((req, res, next) => {
+  cleanXSS(req.body);
+  cleanXSS(req.query);
+  cleanXSS(req.params);
+  next();
+});
 
 // Prevent parameter pollution
 app.use(hpp({

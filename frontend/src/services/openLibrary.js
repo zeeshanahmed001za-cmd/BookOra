@@ -89,7 +89,10 @@ const toBook = (doc) => {
     key,
     title:        doc.title || 'Untitled',
     author:       Array.isArray(doc.author_name) ? doc.author_name.slice(0, 2).join(', ') : 'Unknown Author',
-    cover:        buildCoverUrl(doc.cover_i, 'L'),
+    // Optimized: Medium size for listing grids & carousels (saves ~80% bandwidth vs Large)
+    cover:        buildCoverUrl(doc.cover_i, 'M'),
+    // Large size reserved for the Book Details Modal only
+    largeCover:   buildCoverUrl(doc.cover_i, 'L'),
     coverId:      doc.cover_i || null,
     year:         doc.first_publish_year || (Array.isArray(doc.publish_year) ? doc.publish_year[0] : null) || null,
     category:     mapCategory(doc.subject),

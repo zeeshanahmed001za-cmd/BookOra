@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchBooksByQuery } from '../services/openLibrary';
 import { mergePricing } from '../utils/pricing';
 import { useWishlist } from '../contexts/WishlistContext';
-import BookCoverImage from '../components/BookCoverImage';
+import OptimizedBookCover from '../components/OptimizedBookCover';
 import './Home.css';
 
 // Import Hero Images
@@ -83,7 +83,7 @@ const BookCarousel = ({ books }) => {
         onMouseLeave={handleMouseUpOrLeave}
       >
         <div className="carousel-track">
-          {books.map((book) => {
+          {books.map((book, idx) => {
             const wishlisted = isWishlisted(book.id);
             return (
               <div
@@ -94,10 +94,11 @@ const BookCarousel = ({ books }) => {
                 style={{ cursor: 'pointer' }}
               >
                 <div className="book-cover-container">
-                  <BookCoverImage
+                  <OptimizedBookCover
+                    coverId={book.coverId}
                     src={book.cover}
                     alt={book.title}
-                    className="book-cover"
+                    priority={idx < 3}
                   />
                   {book.isBestseller && (
                     <span className="bc-badge" style={{ zIndex: 2 }}>Bestseller</span>

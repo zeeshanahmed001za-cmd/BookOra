@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, Heart, Search } from 'lucide-react';
+import { ShoppingCart, User, Heart, Search, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { useWishlist } from '../../contexts/WishlistContext';
+import { useUser } from '../../contexts/UserContext';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
 
@@ -12,13 +13,34 @@ const Navbar = () => {
   const urlSearch = searchParams.get('search') || '';
 
   const { wishlist } = useWishlist();
+  const { user, isAuthenticated, logout } = useUser();
 
   const [searchQuery, setSearchQuery] = useState(urlSearch);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   // Sync search input value with URL search parameter changes
   useEffect(() => {
     setSearchQuery(urlSearch);
   }, [urlSearch]);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
+
+  // Close dropdown on location change
+  useEffect(() => {
+    setShowDropdown(false);
+  }, [location.pathname]);
 
   const handleSearchChange = (val) => {
     setSearchQuery(val);
@@ -77,9 +99,55 @@ const Navbar = () => {
             )}
           </Link>
 
-          <Link to="/auth" className="nav-icon-btn" title="Account">
-            <User size={24} />
-          </Link>
+          {/* Account Dropdown Container */}
+          <div className="nav-dropdown-container" ref={dropdownRef}>
+            <button
+              className="nav-icon-btn"
+              onClick={() => setShowDropdown(!showDropdown)}
+              title="Account"
+              aria-haspopup="true"
+              aria-expanded={showDropdown}
+            >
+              {isAuthenticated && user && user.avatar ? (
+                <img src={user.avatar} alt="Account" className="nav-avatar-mini" />
+              ) : (
+                <User size={24} />
+              )}
+            </button>
+
+            {showDropdown && (
+              <div className="nav-dropdown glass fade-in">
+                {isAuthenticated ? (
+                  <>
+                    <div className="nav-dropdown-user-info">
+                      <span className="nd-name">{user.fullName}</span>
+                      <span className="nd-username">@{user.username}</span>
+                    </div>
+                    <div className="nav-dropdown-divider" />
+                    <Link to="/profile" className="nav-dropdown-item">
+                      <User size={16} />
+                      <span>My Profile</span>
+                    </Link>
+                    <button className="nav-dropdown-item logout" onClick={logout}>
+                      <LogOut size={16} />
+                      <span>Sign Out</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth?mode=signin" className="nav-dropdown-item">
+                      <LogIn size={16} />
+                      <span>Sign In</span>
+                    </Link>
+                    <Link to="/auth?mode=signup" className="nav-dropdown-item signup-highlight">
+                      <UserPlus size={16} />
+                      <span>Create Account</span>
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
           <Link to="/cart" className="nav-icon-btn" title="Cart">
             <ShoppingCart size={24} />

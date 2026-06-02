@@ -146,3 +146,114 @@
   line-height: 1;
   border: 2px solid var(--bg-color);
 }
+
+.nav-avatar-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent-primary);
+  box-shadow: 0 0 10px rgba(162, 148, 251, 0.3);
+  transition: transform var(--transition-fast);
+}
+
+.nav-icon-btn:hover .nav-avatar-mini {
+  transform: scale(1.08);
+}
+
+/* ── Dropdown Menu ── */
+.nav-dropdown-container {
+  position: relative;
+  display: flex;
+}
+
+.nav-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 220px;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 1100;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card) !important; /* Enforced solid opaque background */
+}
+
+.nav-dropdown-user-info {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+}
+
+.nd-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.nd-username {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.nav-dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 6px 6px;
+}
+
+.nav-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}
+
+.nav-dropdown-item svg {
+  color: var(--text-dim);
+  transition: color var(--transition-fast);
+}
+
+.nav-dropdown-item:hover svg {
+  color: var(--accent-primary);
+}
+
+.nav-dropdown-item.logout:hover {
+  background: rgba(255, 77, 109, 0.06);
+  color: #ff4d6d;
+}
+
+.nav-dropdown-item.logout:hover svg {
+  color: #ff4d6d;
+}
+
+.nav-dropdown-item.signup-highlight {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.nav-dropdown-item.signup-highlight:hover {
+  background: rgba(162, 148, 251, 0.08);
+}
+

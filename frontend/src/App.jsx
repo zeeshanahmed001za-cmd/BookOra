@@ -5,31 +5,37 @@ import Footer from './components/layout/Footer';
 import Home from './pages/Home';
 import Books from './pages/Books';
 import Wishlist from './pages/Wishlist';
+import Profile from './pages/Profile';
+import Auth from './pages/Auth';
 import BookDetailsModal from './components/BookDetailsModal';
 import { WishlistProvider } from './contexts/WishlistContext';
+import { UserProvider } from './contexts/UserContext';
 import './App.css';
 
 function App() {
   return (
     <Router>
-      <WishlistProvider>
-        <div className="app">
-          <Navbar />
-          <SubNav />
-          <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/books" element={<Books />} />
-              <Route path="/auth"  element={<div className="placeholder-page">Auth Page (Coming Soon)</div>} />
-              <Route path="/cart"  element={<div className="placeholder-page">Your Cart (Coming Soon)</div>} />
-              <Route path="/wishlist" element={<Wishlist />} />
-              <Route path="/sell"  element={<div className="placeholder-page">Sell Books (Coming Soon)</div>} />
-            </Routes>
-          </main>
-          <Footer />
-          <BookDetailsModal />
-        </div>
-      </WishlistProvider>
+      <UserProvider>
+        <WishlistProvider>
+          <div className="app">
+            <Navbar />
+            <SubNav />
+            <main>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/books" element={<Books />} />
+                <Route path="/auth"  element={<Auth />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/cart"  element={<div className="placeholder-page">Your Cart (Coming Soon)</div>} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/sell"  element={<div className="placeholder-page">Sell Books (Coming Soon)</div>} />
+              </Routes>
+            </main>
+            <Footer />
+            <BookDetailsModal />
+          </div>
+        </WishlistProvider>
+      </UserProvider>
     </Router>
   );
 }

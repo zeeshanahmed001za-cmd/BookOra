@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Trash2, BookOpen, ShoppingCart, Star, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
-import BookCoverImage from '../components/BookCoverImage';
+import OptimizedBookCover from '../components/OptimizedBookCover';
 import './Wishlist.css';
 
 const Wishlist = () => {
@@ -73,7 +73,11 @@ const Wishlist = () => {
                     >
                       {/* Cover image wrap */}
                       <div className="wc-cover-wrap" onClick={() => setSelectedBook(book)}>
-                        <BookCoverImage src={book.cover} alt={book.title} />
+                        <OptimizedBookCover
+                          coverId={book.coverId}
+                          src={book.cover}
+                          alt={book.title}
+                        />
                         {book.isBestseller && (
                           <span className="wc-badge">Bestseller</span>
                         )}

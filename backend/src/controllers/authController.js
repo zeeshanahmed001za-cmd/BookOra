@@ -27,11 +27,23 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
+  const username = req.body.username;
+  if (!username) {
+    return next(new AppError('Please provide a username!', 400));
+  }
+
+  const name = req.body.name || username;
+  // Use the real email if provided, otherwise auto-generate from username
+  const providedEmail = req.body.email && req.body.email.trim();
+  const email = providedEmail || `${username.toLowerCase()}@bookora.com`;
+  const passwordConfirm = req.body.passwordConfirm || req.body.password;
+
   const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
+    name,
+    email,
+    username,
     password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
+    passwordConfirm,
     role: req.body.role
   });
 
@@ -40,17 +52,23 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
+  const loginIdentifier = email || req.body.username;
 
-  // 1) Check if email and password exist
-  if (!email || !password) {
-    return next(new AppError('Please provide email and password!', 400));
+  // 1) Check if email/username and password exist
+  if (!loginIdentifier || !password) {
+    return next(new AppError('Please provide email/username and password!', 400));
   }
 
-  // 2) Check if user exists && password is correct
-  const user = await User.findOne({ email }).select('+password');
+  // 2) Check if user exists && password is correct (checking both email and username)
+  const user = await User.findOne({
+    $or: [
+      { email: loginIdentifier.toLowerCase().trim() },
+      { username: loginIdentifier.toLowerCase().trim() }
+    ]
+  }).select('+password');
 
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError('Incorrect email or password', 401));
+    return next(new AppError('Incorrect username/email or password', 401));
   }
 
   // 3) If everything ok, send token to client
@@ -179,5 +197,31 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // This is handled in the model (I should add it)
 
   // 4) Log the user in, send JWT
+  createSendToken(user, 200, res);
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // 1) Get user from collection
+  const user = await User.findById(req.user.id).select('+password');
+
+  // 2) Check if POSTed current password is correct
+  const currentPassword = req.body.currentPassword || req.body.passwordCurrent;
+  const newPassword = req.body.password || req.body.newPassword;
+  const confirmPassword = req.body.passwordConfirm || req.body.confirmPassword || newPassword;
+
+  if (!currentPassword || !newPassword) {
+    return next(new AppError('Please provide currentPassword and newPassword', 400));
+  }
+
+  if (!(await user.correctPassword(currentPassword, user.password))) {
+    return next(new AppError('Your current password is incorrect', 401));
+  }
+
+  // 3) If so, update password
+  user.password = newPassword;
+  user.passwordConfirm = confirmPassword;
+  await user.save();
+
+  // 4) Log user in, send JWT
   createSendToken(user, 200, res);
 });

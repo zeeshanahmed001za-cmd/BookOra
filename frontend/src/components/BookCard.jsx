@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Star, ShoppingCart, Heart } from 'lucide-react';
 import { useWishlist } from '../contexts/WishlistContext';
-import BookCoverImage from './BookCoverImage';
+import OptimizedBookCover from './OptimizedBookCover';
 import './BookCard.css';
 
 // ─── Stars sub-component ──────────────────────────────────────────────────────
@@ -38,7 +38,12 @@ const BookCard = ({ book, index = 0 }) => {
     >
       {/* ── Cover ── */}
       <div className="bc-cover-wrap" onClick={() => setSelectedBook(book)}>
-        <BookCoverImage src={book.cover} alt={book.title} />
+        <OptimizedBookCover
+          coverId={book.coverId}
+          src={book.cover}
+          alt={book.title}
+          priority={index < 4}
+        />
 
         {book.isBestseller && (
           <span className="bc-badge">Bestseller</span>
