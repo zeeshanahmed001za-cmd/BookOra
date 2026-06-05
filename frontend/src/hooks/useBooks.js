@@ -1,21 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { fetchBooksByQuery, invalidateCache, getCachedBooks } from '../services/openLibrary';
-import { mergePricing } from '../utils/pricing';
+
+const API_BASE = 'http://localhost:5000/api/v1';
 
 /**
- * Custom hook — fetches books from Open Library with:
- * - Centralized service-level caching
- * - Pricing merged via internal prices.json (no random pricing)
+ * Custom hook — fetches books from the Bookora backend with:
+ * - Category and search filtering via query params
  * - Overlay loading (keeps previous results visible while fetching)
- * - Synchronous cache resolution to prevent flashing
  * - Proper stale-state cancellation
  * - Manual retry support
  *
- * @param {string}  query  - Search term
- * @param {number}  limit  - Max results (default 24)
+ * @param {string}  query   - Search term or category name
+ * @param {number}  limit   - Max results (default 24, max 100)
+ * @param {object}  options - Extra options: { isBestseller, category }
  * @returns {{ books, loading, error, retry }}
  */
-const useBooks = (query, limit = 24) => {
+const useBooks = (query, limit = 24, options = {}) => {
   const [books,    setBooks]    = useState([]);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState(null);
@@ -24,63 +23,86 @@ const useBooks = (query, limit = 24) => {
   const abortRef = useRef(null);
 
   useEffect(() => {
-    const trimmed = query?.trim();
-
-    if (!trimmed) {
-      setBooks([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    // ── Cache hit: return instantly, no fetch needed ──────────────────────────
-    const cached = getCachedBooks(trimmed, limit);
-    if (cached) {
-      setBooks(cached);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    // ── Cancel any in-flight request ─────────────────────────────────────────
+    // Cancel any in-flight request
     if (abortRef.current) {
-      abortRef.current.cancelled = true;
+      abortRef.current.abort();
     }
-    const token = { cancelled: false };
-    abortRef.current = token;
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-    // ── Show overlay spinner (don't wipe existing books) ──────────────────────
     setLoading(true);
     setError(null);
 
     const load = async () => {
       try {
-        const rawBooks = await fetchBooksByQuery(trimmed, limit);
-        if (token.cancelled) return;
+        const params = new URLSearchParams();
+        params.set('limit', String(limit));
 
-        // Merge internal pricing into every book object
-        const pricedBooks = rawBooks.map(mergePricing);
-        setBooks(pricedBooks);
+        // If a query looks like a search term, use the search param
+        const knownCategories = [
+          'Fiction', 'Non-Fiction', 'Science', 'History',
+          'Biography', 'Children', 'Self Help', 'Sci-Fi', 'All'
+        ];
+        const isCategory = knownCategories.includes(query);
+
+        if (query && query !== 'All') {
+          if (isCategory) {
+            params.set('category', query);
+          } else {
+            params.set('search', query);
+          }
+        }
+
+        if (options.isBestseller) {
+          params.set('isBestseller', 'true');
+        }
+
+        const url = `${API_BASE}/books?${params.toString()}`;
+        const res = await fetch(url, { signal: controller.signal });
+
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+        const data = await res.json();
+        if (controller.signal.aborted) return;
+
+        const rawBooks = data.data?.books || [];
+
+        // Normalize fields to match existing UI expectations
+        const normalized = rawBooks.map(b => ({
+          id:            b._id,
+          _id:           b._id,
+          title:         b.title,
+          author:        b.author,
+          price:         b.price,
+          originalPrice: b.originalPrice || null,
+          description:   b.description,
+          category:      b.category,
+          stock:         b.stock,
+          coverId:       b.coverId || null,
+          cover:         b.cover || null,
+          rating:        b.ratingsAverage || 4.5,
+          isBestseller:  b.isBestseller || false,
+        }));
+
+        setBooks(normalized);
       } catch (err) {
-        if (token.cancelled) return;
+        if (err.name === 'AbortError') return;
         setError(err.message || 'Failed to load books.');
       } finally {
-        if (!token.cancelled) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     load();
 
     return () => {
-      token.cancelled = true;
+      controller.abort();
     };
-  }, [query, limit, retryKey]);
+  }, [query, limit, options.isBestseller, retryKey]);
 
   const retry = useCallback(() => {
-    // Bust cache for this query on retry so we get fresh data
-    invalidateCache(query, limit);
     setRetryKey(k => k + 1);
-  }, [query, limit]);
+  }, []);
 
   return { books, loading, error, retry };
 };

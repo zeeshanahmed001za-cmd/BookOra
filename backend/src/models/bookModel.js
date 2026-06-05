@@ -25,14 +25,26 @@ const bookSchema = new mongoose.Schema({
     type: String,
     required: [true, 'A book must have a category'],
     enum: {
-      values: ['Fiction', 'Non-Fiction', 'Science', 'History', 'Biography', 'Children'],
-      message: 'Category is either: Fiction, Non-Fiction, Science, History, Biography, Children'
+      values: ['Fiction', 'Non-Fiction', 'Science', 'History', 'Biography', 'Children', 'Self Help', 'Sci-Fi'],
+      message: 'Category is either: Fiction, Non-Fiction, Science, History, Biography, Children, Self Help, Sci-Fi'
     }
   },
   stock: {
     type: Number,
     required: [true, 'A book must have a stock count'],
     default: 0
+  },
+  coverId: {
+    type: Number,
+    default: null
+  },
+  cover: {
+    type: String,
+    default: ''
+  },
+  isBestseller: {
+    type: Boolean,
+    default: false
   },
   ratingsAverage: {
     type: Number,

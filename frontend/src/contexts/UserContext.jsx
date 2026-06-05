@@ -29,7 +29,6 @@ const formatUser = (userData) => {
   return {
     ...userData,
     fullName: userData.fullName || userData.name || '',
-    avatar: userData.avatar || userData.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150&h=150',
     dateJoined: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -188,7 +187,7 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const signup = async (fullName, email, username, password, passwordConfirm) => {
+  const signup = async (fullName, email, username, password, passwordConfirm, phone, shippingAddress) => {
     setLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/users/signup`, {
@@ -196,7 +195,9 @@ export const UserProvider = ({ children }) => {
         email: email.toLowerCase().trim(),
         username: username.toLowerCase().trim(),
         password,
-        passwordConfirm
+        passwordConfirm,
+        phone,
+        shippingAddress
       });
 
       if (response.data.status === 'success') {
@@ -256,8 +257,7 @@ export const UserProvider = ({ children }) => {
           fullName: profileData.fullName.trim(),
           email: profileData.email.trim(),
           phone: profileData.phone.trim(),
-          shippingAddress: profileData.shippingAddress.trim(),
-          avatar: profileData.avatar.trim()
+          shippingAddress: profileData.shippingAddress.trim()
         },
         {
           headers: { Authorization: `Bearer ${token}` }

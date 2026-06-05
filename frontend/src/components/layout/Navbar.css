@@ -147,18 +147,27 @@
   border: 2px solid var(--bg-color);
 }
 
-.nav-avatar-mini {
-  width: 32px;
-  height: 32px;
+.nav-initials-avatar {
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--accent-primary);
-  box-shadow: 0 0 10px rgba(162, 148, 251, 0.3);
-  transition: transform var(--transition-fast);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.03em;
+  border: 2px solid rgba(162, 148, 251, 0.4);
+  box-shadow: 0 0 10px rgba(162, 148, 251, 0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
 }
 
-.nav-icon-btn:hover .nav-avatar-mini {
+.nav-icon-btn:hover .nav-initials-avatar {
   transform: scale(1.08);
+  box-shadow: 0 0 16px rgba(162, 148, 251, 0.45);
 }
 
 /* ── Dropdown Menu ── */

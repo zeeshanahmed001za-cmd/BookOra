@@ -11,7 +11,9 @@ import {
   AlertCircle,
   BookOpen,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Phone,
+  MapPin
 } from 'lucide-react';
 import { useUser, validatePassword } from '../contexts/UserContext';
 import './Auth.css';
@@ -33,7 +35,9 @@ const Auth = () => {
     signinEmail: '',
     username: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    phone: '',
+    shippingAddress: ''
   });
 
   const [agreeSignup, setAgreeSignup] = useState(false);
@@ -77,12 +81,24 @@ const Auth = () => {
         return;
       }
       // Validate registration details
+      if (!formData.fullName.trim()) {
+        setLocalError('Please enter your full name.');
+        return;
+      }
       if (formData.username.trim().length < 3) {
         setLocalError('Username must be at least 3 characters.');
         return;
       }
       if (!formData.email.trim() || !formData.email.includes('@')) {
         setLocalError('Please enter a valid email address.');
+        return;
+      }
+      if (!formData.phone.trim()) {
+        setLocalError('Please enter your phone number.');
+        return;
+      }
+      if (!formData.shippingAddress.trim()) {
+        setLocalError('Please enter your shipping address.');
         return;
       }
       
@@ -94,11 +110,13 @@ const Auth = () => {
       }
 
       await signup(
-        '', // No fullName
+        formData.fullName.trim(),
         formData.email,
         formData.username,
         formData.password,
-        formData.password // confirmPassword matches password
+        formData.password,
+        formData.phone.trim(),
+        formData.shippingAddress.trim()
       );
     } else {
       // Validate Terms Agreement for Sign In
@@ -175,6 +193,22 @@ const Auth = () => {
               {mode === 'signup' ? (
                 <>
                   <div className="form-group">
+                    <label htmlFor="fullName">Full Name</label>
+                    <div className="input-with-icon">
+                      <User size={16} className="field-icon" />
+                      <input
+                        id="fullName"
+                        name="fullName"
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
                     <label htmlFor="username">Username</label>
                     <div className="input-with-icon">
                       <User size={16} className="field-icon" />
@@ -202,6 +236,39 @@ const Auth = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="phone">Phone Number</label>
+                    <div className="input-with-icon">
+                      <Phone size={16} className="field-icon" />
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        placeholder="Enter your phone number"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="shippingAddress">Shipping Address</label>
+                    <div className="input-with-icon">
+                      <MapPin size={16} className="field-icon" style={{ alignSelf: 'flex-start', marginTop: '12px' }} />
+                      <textarea
+                        id="shippingAddress"
+                        name="shippingAddress"
+                        placeholder="Enter your shipping address"
+                        value={formData.shippingAddress}
+                        onChange={handleInputChange}
+                        required
+                        rows="3"
+                        style={{ width: '100%', paddingLeft: '40px', paddingTop: '10px' }}
                       />
                     </div>
                   </div>

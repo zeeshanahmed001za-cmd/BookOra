@@ -32,7 +32,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide a username!', 400));
   }
 
-  const name = req.body.name || username;
+  const name = req.body.name || req.body.fullName || username;
   // Use the real email if provided, otherwise auto-generate from username
   const providedEmail = req.body.email && req.body.email.trim();
   const email = providedEmail || `${username.toLowerCase()}@bookora.com`;
@@ -44,6 +44,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     username,
     password: req.body.password,
     passwordConfirm,
+    phone: req.body.phone || '',
+    shippingAddress: req.body.shippingAddress || '',
     role: req.body.role
   });
 

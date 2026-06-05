@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ChevronLeft, ChevronRight, ArrowUp, AlertCircle, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { fetchBooksByQuery } from '../services/openLibrary';
-import { mergePricing } from '../utils/pricing';
 import { useWishlist } from '../contexts/WishlistContext';
 import OptimizedBookCover from '../components/OptimizedBookCover';
 import './Home.css';
@@ -200,7 +198,7 @@ const Home = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Fetch home sections from Open Library API
+  // Fetch home sections from local Express backend
   useEffect(() => {
     let isMounted = true;
 
@@ -208,23 +206,41 @@ const Home = () => {
       setLoading(true);
       setError(null);
 
-      const fetchSection = async (query, setter) => {
+      const fetchSection = async (urlSuffix, setter) => {
         try {
-          const res = await fetchBooksByQuery(query, 12);
+          const res = await fetch(`http://localhost:5000/api/v1/books?${urlSuffix}`);
+          if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+          const data = await res.json();
+          const rawBooks = data.data?.books || [];
+          const normalized = rawBooks.map(b => ({
+            id:            b._id,
+            _id:           b._id,
+            title:         b.title,
+            author:        b.author,
+            price:         b.price,
+            originalPrice: b.originalPrice || null,
+            description:   b.description,
+            category:      b.category,
+            stock:         b.stock,
+            coverId:       b.coverId || null,
+            cover:         b.cover || null,
+            rating:        b.ratingsAverage || 4.5,
+            isBestseller:  b.isBestseller || false,
+          }));
           if (isMounted) {
-            setter(res.map(mergePricing));
+            setter(normalized);
           }
         } catch (err) {
-          console.error(`Error fetching home category '${query}':`, err);
+          console.error(`Error fetching home section '${urlSuffix}':`, err);
         }
       };
 
       try {
         await Promise.all([
-          fetchSection('bestseller', setBestSellers),
-          fetchSection('fiction', setFictionBooks),
-          fetchSection('self-help', setSelfHelpBooks),
-          fetchSection('sci-fi', setSciFiBooks)
+          fetchSection('limit=12&isBestseller=true', setBestSellers),
+          fetchSection('limit=12&category=Fiction', setFictionBooks),
+          fetchSection('limit=12&category=Self Help', setSelfHelpBooks),
+          fetchSection('limit=12&category=Sci-Fi', setSciFiBooks)
         ]);
       } catch (err) {
         if (isMounted) {

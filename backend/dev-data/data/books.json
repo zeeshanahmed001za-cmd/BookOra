@@ -2,33 +2,97 @@
   {
     "title": "The Great Gatsby",
     "author": "F. Scott Fitzgerald",
-    "price": 15,
-    "description": "A story of money, love, and the American Dream.",
+    "price": 499,
+    "description": "A story of money, love, and the American Dream in the Roaring Twenties.",
     "category": "Fiction",
-    "stock": 50
+    "stock": 12,
+    "coverId": 8432047,
+    "cover": "https://covers.openlibrary.org/b/id/8432047-M.jpg",
+    "ratingsAverage": 4.7,
+    "isBestseller": true
   },
   {
     "title": "A Brief History of Time",
     "author": "Stephen Hawking",
-    "price": 25,
+    "price": 599,
     "description": "A landmark volume in science writing by one of the great minds of our time.",
     "category": "Science",
-    "stock": 30
+    "stock": 8,
+    "coverId": 8225266,
+    "cover": "https://covers.openlibrary.org/b/id/8225266-M.jpg",
+    "ratingsAverage": 4.8,
+    "isBestseller": false
   },
   {
     "title": "The Diary of a Young Girl",
     "author": "Anne Frank",
-    "price": 12,
-    "description": "The writings from the Dutch-language diary kept by Anne Frank.",
+    "price": 299,
+    "description": "The poignant and deeply moving writings from the Dutch-language diary kept by Anne Frank.",
     "category": "Biography",
-    "stock": 100
+    "stock": 15,
+    "coverId": 12822452,
+    "cover": "https://covers.openlibrary.org/b/id/12822452-M.jpg",
+    "ratingsAverage": 4.9,
+    "isBestseller": true
   },
   {
     "title": "Sapiens: A Brief History of Humankind",
     "author": "Yuval Noah Harari",
-    "price": 20,
-    "description": "A book by Yuval Noah Harari, first published in Hebrew in Israel in 2011.",
+    "price": 699,
+    "description": "Yuval Noah Harari explores the history of humankind from the evolutionary stages to the modern day.",
     "category": "History",
-    "stock": 45
+    "stock": 20,
+    "coverId": 9278291,
+    "cover": "https://covers.openlibrary.org/b/id/9278291-M.jpg",
+    "ratingsAverage": 4.6,
+    "isBestseller": true
+  },
+  {
+    "title": "Atomic Habits",
+    "author": "James Clear",
+    "price": 399,
+    "description": "An easy and proven way to build good habits and break bad ones.",
+    "category": "Self Help",
+    "stock": 25,
+    "coverId": 10584742,
+    "cover": "https://covers.openlibrary.org/b/id/10584742-M.jpg",
+    "ratingsAverage": 4.9,
+    "isBestseller": true
+  },
+  {
+    "title": "Dune",
+    "author": "Frank Herbert",
+    "price": 549,
+    "description": "The epic science fiction masterpiece set on the desert planet Arrakis.",
+    "category": "Sci-Fi",
+    "stock": 10,
+    "coverId": 10224422,
+    "cover": "https://covers.openlibrary.org/b/id/10224422-M.jpg",
+    "ratingsAverage": 4.8,
+    "isBestseller": false
+  },
+  {
+    "title": "Charlotte's Web",
+    "author": "E.B. White",
+    "price": 249,
+    "description": "The classic children's story about a pig named Wilbur and his spider friend Charlotte.",
+    "category": "Children",
+    "stock": 30,
+    "coverId": 8303036,
+    "cover": "https://covers.openlibrary.org/b/id/8303036-M.jpg",
+    "ratingsAverage": 4.7,
+    "isBestseller": false
+  },
+  {
+    "title": "Thinking, Fast and Slow",
+    "author": "Daniel Kahneman",
+    "price": 649,
+    "description": "A deep dive into the two systems that drive the way we think.",
+    "category": "Non-Fiction",
+    "stock": 14,
+    "coverId": 8232924,
+    "cover": "https://covers.openlibrary.org/b/id/8232924-M.jpg",
+    "ratingsAverage": 4.5,
+    "isBestseller": false
   }
 ]

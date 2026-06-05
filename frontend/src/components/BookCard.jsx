@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { Star, ShoppingCart, Heart } from 'lucide-react';
+import { Star, ShoppingCart, Heart, CheckCircle } from 'lucide-react';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useCart } from '../contexts/CartContext';
 import OptimizedBookCover from './OptimizedBookCover';
 import './BookCard.css';
 
@@ -22,8 +23,10 @@ const Stars = ({ rating }) => (
 // ─── BookCard ─────────────────────────────────────────────────────────────────
 const BookCard = ({ book, index = 0 }) => {
   const { toggleWishlist, isWishlisted, setSelectedBook } = useWishlist();
+  const { addToCart, isInCart } = useCart();
 
   const wishlisted = isWishlisted(book.id);
+  const inCart = isInCart(book.id);
 
   // Stable pseudo-review count derived from title length
   const reviews = 100 + ((book.title.length * 73 + book.id.length * 37) % 4900);
@@ -73,9 +76,16 @@ const BookCard = ({ book, index = 0 }) => {
       {/* ── Footer ── */}
       <div className="bc-footer">
         <span className="bc-price">₹{book.price.toFixed(2)}</span>
-        <button className="bc-cart-btn">
-          <ShoppingCart size={14} />
-          Add to Cart
+        <button
+          className={`bc-cart-btn ${inCart ? 'in-cart' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            addToCart(book);
+          }}
+          aria-label={inCart ? 'Added to cart' : 'Add to cart'}
+        >
+          {inCart ? <CheckCircle size={14} /> : <ShoppingCart size={14} />}
+          {inCart ? 'Added' : 'Add to Cart'}
         </button>
       </div>
     </motion.article>

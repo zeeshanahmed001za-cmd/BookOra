@@ -34,6 +34,12 @@ import { useUser } from '../contexts/UserContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import OptimizedBookCover from '../components/OptimizedBookCover';
 import './Profile.css';
+const getInitials = (name = '') => {
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length === 0) return 'U';
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -63,8 +69,7 @@ const Profile = () => {
     fullName: '',
     email: '',
     phone: '',
-    shippingAddress: '',
-    avatar: ''
+    shippingAddress: ''
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -85,10 +90,6 @@ const Profile = () => {
     login: false
   });
 
-  // Avatar upload visual panel
-  const [showAvatarPrompt, setShowAvatarPrompt] = useState(false);
-  const [customAvatarUrl, setCustomAvatarUrl] = useState('');
-
   // Orders pagination and detail expansion states
   const [expandedOrders, setExpandedOrders] = useState({});
   const [orderPage, setOrderPage] = useState(1);
@@ -101,10 +102,8 @@ const Profile = () => {
         fullName: user.fullName || '',
         email: user.email || '',
         phone: user.phone || '',
-        shippingAddress: user.shippingAddress || '',
-        avatar: user.avatar || ''
+        shippingAddress: user.shippingAddress || ''
       });
-      setCustomAvatarUrl(user.avatar || '');
     }
   }, [user]);
 
@@ -149,24 +148,6 @@ const Profile = () => {
     e.preventDefault();
     await login(loginForm.email, loginForm.password);
   };
-
-  const handleAvatarUpdate = () => {
-    if (customAvatarUrl.trim()) {
-      setProfileForm((prev) => ({ ...prev, avatar: customAvatarUrl.trim() }));
-      updateProfile({ ...profileForm, avatar: customAvatarUrl.trim() });
-      setShowAvatarPrompt(false);
-    }
-  };
-
-  // Preset avatars for ease of customization
-  const presetAvatars = [
-    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150&h=150',
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150',
-    'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&q=80&w=150&h=150',
-    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150&h=150',
-    'https://images.unsplash.com/photo-1628157582853-a796fa650a6a?auto=format&fit=crop&q=80&w=150&h=150',
-    'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=150&h=150'
-  ];
 
   // ─── Logged Out Flow ────────────────────────────────────────────────────────
   if (!isAuthenticated) {
@@ -270,16 +251,9 @@ const Profile = () => {
           <div className="ph-flex-container">
             <div className="ph-avatar-section">
               <div className="ph-avatar-wrap">
-                <img src={user.avatar} alt={user.fullName} className="ph-avatar-img" />
-                <button
-                  className="avatar-edit-overlay"
-                  onClick={() => setShowAvatarPrompt(true)}
-                  title="Change avatar picture"
-                  aria-label="Change avatar picture"
-                >
-                  <Upload size={16} />
-                  <span>Update</span>
-                </button>
+                <div className="ph-initials-avatar">
+                  {getInitials(user.fullName || user.name)}
+                </div>
               </div>
             </div>
 
@@ -309,59 +283,6 @@ const Profile = () => {
               </button>
             </div>
           </div>
-
-          {/* Preset/URL Avatar Customizer modal overlay */}
-          <AnimatePresence>
-            {showAvatarPrompt && (
-              <motion.div
-                className="avatar-dialog-backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowAvatarPrompt(false)}
-              >
-                <motion.div
-                  className="avatar-dialog glass"
-                  onClick={(e) => e.stopPropagation()}
-                  initial={{ scale: 0.9, y: 20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  exit={{ scale: 0.9, y: 20 }}
-                >
-                  <h3>Select Profile Avatar</h3>
-                  <div className="preset-avatars-grid">
-                    {presetAvatars.map((url, i) => (
-                      <div
-                        key={i}
-                        className={`preset-item ${customAvatarUrl === url ? 'selected' : ''}`}
-                        onClick={() => setCustomAvatarUrl(url)}
-                      >
-                        <img src={url} alt={`Preset ${i + 1}`} />
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="avatar-url-input">
-                    <label>Or Paste Custom Image URL</label>
-                    <input
-                      type="url"
-                      placeholder="https://example.com/avatar.jpg"
-                      value={customAvatarUrl}
-                      onChange={(e) => setCustomAvatarUrl(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="avatar-dialog-buttons">
-                    <button className="avatar-btn-cancel" onClick={() => setShowAvatarPrompt(false)}>
-                      Cancel
-                    </button>
-                    <button className="avatar-btn-save btn-primary" onClick={handleAvatarUpdate}>
-                      Apply Avatar
-                    </button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Dynamic Statistics Row */}
