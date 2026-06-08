@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star, ShoppingCart, Heart, Calendar, BookOpen, Loader2 } from 'lucide-react';
 import { useWishlist } from '../contexts/WishlistContext';
 import { fetchBookDetails } from '../services/openLibrary';
-import BookCoverImage from './BookCoverImage';
+import OptimizedBookCover from './OptimizedBookCover';
 import './BookDetailsModal.css';
 
 const BookDetailsModal = () => {
@@ -83,7 +83,13 @@ const BookDetailsModal = () => {
             {/* Left: Book Cover and Primary actions */}
             <div className="modal-sidebar">
               <div className="modal-cover-wrap">
-                <BookCoverImage src={selectedBook.cover} alt={selectedBook.title} />
+                <OptimizedBookCover
+                  coverId={selectedBook.coverId}
+                  src={selectedBook.cover}
+                  size="L"
+                  alt={selectedBook.title}
+                  priority={true}
+                />
                 {selectedBook.isBestseller && (
                   <span className="modal-badge">Bestseller</span>
                 )}

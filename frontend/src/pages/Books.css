@@ -354,3 +354,39 @@
   .books-header h1 { font-size: 2rem; }
   .books-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
 }
+
+/* ── Load More Button ── */
+.books-load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 48px;
+  width: 100%;
+}
+
+.books-load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 36px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.books-load-more-btn:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.books-load-more-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+

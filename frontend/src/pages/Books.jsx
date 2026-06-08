@@ -75,12 +75,10 @@ const Books = () => {
   // ── Resolve API query ─────────────────────────────────────────────────────
   const apiQuery = useMemo(() => {
     if (debouncedSearch.trim()) return debouncedSearch.trim();
-    if (activeGenre !== 'All')  return activeGenre;
-    if (urlBadge === 'Bestseller') return 'bestseller';
-    return 'classics';
-  }, [debouncedSearch, activeGenre, urlBadge]);
+    return activeGenre;
+  }, [debouncedSearch, activeGenre]);
 
-  const { books, loading, error, retry } = useBooks(apiQuery, 24);
+  const { books, loading, error, hasMore, loadMore, retry } = useBooks(apiQuery, 24);
 
   // ── Local filter + sort (instant, no extra fetches) ──────────────────────
   const sorted = useMemo(() => {
@@ -280,11 +278,31 @@ const Books = () => {
           )}
 
           {hasBooks ? (
-            <motion.div className={`books-grid ${loading ? 'books-grid--faded' : ''}`} layout>
-              {sorted.map((book, i) => (
-                <BookCard key={book.id} book={book} index={i} />
-              ))}
-            </motion.div>
+            <>
+              <motion.div className={`books-grid ${loading ? 'books-grid--faded' : ''}`} layout>
+                {sorted.map((book, i) => (
+                  <BookCard key={book.id} book={book} index={i} />
+                ))}
+              </motion.div>
+              {hasMore && (
+                <div className="books-load-more-wrap">
+                  <button 
+                    className="books-load-more-btn glass" 
+                    onClick={loadMore} 
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="spin-icon" size={16} />
+                        <span>Loading...</span>
+                      </>
+                    ) : (
+                      'Load More Books'
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
           ) : !loading ? (
             <div className="no-results">
               <Search size={40} style={{ opacity: 0.3, marginBottom: '16px' }} />

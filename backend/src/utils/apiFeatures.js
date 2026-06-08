@@ -20,10 +20,12 @@ class APIFeatures {
 
   sort() {
     if (this.queryString.sort) {
-      const sortBy = this.queryString.sort.split(',').join(' ');
+      // Always append _id as a stable tiebreaker to guarantee consistent pagination
+      const sortBy = this.queryString.sort.split(',').join(' ') + ' _id';
       this.query = this.query.sort(sortBy);
     } else {
-      this.query = this.query.sort('-createdAt');
+      // Default: newest first, with _id as stable tiebreaker for bulk-inserted docs
+      this.query = this.query.sort('-createdAt _id');
     }
 
     return this;

@@ -25,8 +25,8 @@ const bookSchema = new mongoose.Schema({
     type: String,
     required: [true, 'A book must have a category'],
     enum: {
-      values: ['Fiction', 'Non-Fiction', 'Science', 'History', 'Biography', 'Children', 'Self Help', 'Sci-Fi'],
-      message: 'Category is either: Fiction, Non-Fiction, Science, History, Biography, Children, Self Help, Sci-Fi'
+      values: ['Fiction', 'Non-Fiction', 'Science', 'History', 'Biography', 'Children', 'Self Help', 'Sci-Fi', 'Romance', 'Mystery', 'General'],
+      message: 'Category is either: Fiction, Non-Fiction, Science, History, Biography, Children, Self Help, Sci-Fi, Romance, Mystery, General'
     }
   },
   stock: {
@@ -66,6 +66,15 @@ const bookSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+// Indexes for high performance querying, sorting, and searching
+bookSchema.index({ title: 1 });
+bookSchema.index({ author: 1 });
+bookSchema.index({ category: 1 });
+bookSchema.index({ price: 1 });
+bookSchema.index({ ratingsAverage: -1 });
+bookSchema.index({ isBestseller: 1 });
+
 const Book = mongoose.model('Book', bookSchema);
 
 module.exports = Book;
+
