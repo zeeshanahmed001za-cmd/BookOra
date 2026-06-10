@@ -58,11 +58,12 @@ const useBooks = (query, limit = 24, options = {}) => {
       params.set('limit', String(limit));
       params.set('page', String(page));
       // Optimize bandwidth by fetching only required fields (excluding long descriptions)
-      params.set('fields', 'title,author,price,category,stock,coverId,cover,ratingsAverage,isBestseller');
+      params.set('fields', 'title,author,price,category,stock,coverId,cover,ratingsAverage,isBestseller,createdAt');
 
       const knownCategories = [
         'Fiction', 'Non-Fiction', 'Science', 'History', 'Biography',
-        'Children', 'Self Help', 'Sci-Fi', 'Romance', 'Mystery', 'All'
+        'Children', 'Self Help', 'Sci-Fi', 'Romance', 'Mystery', 'All',
+        'General'
       ];
       const isCategory = knownCategories.includes(query);
 
@@ -125,6 +126,7 @@ const useBooks = (query, limit = 24, options = {}) => {
           cover:         b.cover || null,
           rating:        b.ratingsAverage || 4.5,
           isBestseller:  b.isBestseller || false,
+          createdAt:     b.createdAt || null,
         }));
 
         // Determine if more pages exist (if returned results are less than request limit, we hit the end)

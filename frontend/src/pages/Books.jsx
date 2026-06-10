@@ -111,7 +111,11 @@ const Books = () => {
     if (sortBy === 'Price: Low to High') arr.sort((a, b) => a.price - b.price);
     else if (sortBy === 'Price: High to Low') arr.sort((a, b) => b.price - a.price);
     else if (sortBy === 'Top Rated') arr.sort((a, b) => b.rating - a.rating);
-    else if (sortBy === 'Newest')    arr.sort((a, b) => b.year - a.year);
+    else if (sortBy === 'Newest')    arr.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt) : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt) : 0;
+      return dateB - dateA;
+    });
 
     return arr;
   }, [books, debouncedSearch, activeGenre, priceRange, urlBadge, sortBy]);

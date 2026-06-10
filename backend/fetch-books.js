@@ -22,7 +22,7 @@ async function fetchBooks() {
   try {
     const subjects = [
       'fiction', 'science', 'biography', 'history', 'self-help',
-      'fantasy', 'romance', 'mystery', 'children', 'business'
+      'fantasy', 'romance', 'mystery', 'children', 'business', 'science_fiction'
     ];
     let allBooks = [];
     const seenTitles = new Set();
@@ -58,6 +58,7 @@ async function fetchBooks() {
       else if (subject === 'self-help') category = 'Self Help';
       else if (subject === 'children') category = 'Children';
       else if (subject === 'business') category = 'Non-Fiction'; // Business is Non-Fiction
+      else if (subject === 'science_fiction') category = 'Sci-Fi';
 
       const books = data.works
         .filter(w => w.cover_id && w.title)
