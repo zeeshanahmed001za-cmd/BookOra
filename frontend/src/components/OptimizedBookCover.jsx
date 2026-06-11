@@ -17,67 +17,41 @@ const OptimizedBookCover = ({
   priority = false,
   className = '',
 }) => {
-  // Construct the primary high-res URL based on coverId or direct src prop
-  const highResUrl = coverId ? buildCoverUrl(coverId, size) : src;
-  
-  // Construct progressive low-res URL if coverId is available (size S is extremely small ~1-2KB)
+  const primaryUrl = coverId ? buildCoverUrl(coverId, size) : src;
   const lowResUrl = coverId ? buildCoverUrl(coverId, 'S') : null;
 
-  // Initialize status: if already in cache, skip loading states and show immediately
-  const isAlreadyLoaded = highResUrl && loadedImageCache.has(highResUrl);
-  
-  const [status, setStatus] = useState(() => {
-    if (!highResUrl) return 'error'; // Go directly to fallback if no url
-    return isAlreadyLoaded ? 'loaded' : 'loading';
-  });
-
+  const [currentSrc, setCurrentSrc] = useState(primaryUrl || FALLBACK_COVER);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [progLoaded, setProgLoaded] = useState(false);
-  const [fallbackStep, setFallbackStep] = useState(0);
 
-  // Sync state if source URLs change
+  // Sync state if source props change
   useEffect(() => {
     const nextUrl = coverId ? buildCoverUrl(coverId, size) : src;
-    if (!nextUrl) {
-      setStatus('error');
-      setFallbackStep(2); // directly fallback to SVG
-    } else if (loadedImageCache.has(nextUrl)) {
-      setStatus('loaded');
-      setFallbackStep(0);
-    } else {
-      setStatus('loading');
-      setProgLoaded(false);
-      setFallbackStep(0);
-    }
+    setCurrentSrc(nextUrl || FALLBACK_COVER);
+    setLoading(true);
+    setError(false);
+    setProgLoaded(false);
   }, [coverId, src, size]);
 
-  // Determine current image source based on load state and error progression
-  let currentSrc = highResUrl;
+  const handleLoad = () => {
+    setLoading(false);
+  };
 
-  if (status === 'error') {
-    if (fallbackStep === 1) {
-      currentSrc = FALLBACK_COVER;
+  const handleError = () => {
+    if (currentSrc === primaryUrl) {
+      setCurrentSrc(FALLBACK_COVER);
+    } else if (currentSrc === FALLBACK_COVER) {
+      setCurrentSrc(FALLBACK_SVG);
+      setError(true);
+      setLoading(false);
     } else {
-      currentSrc = FALLBACK_SVG;
-    }
-  }
-
-  const handleHighResLoad = () => {
-    if (highResUrl) {
-      loadedImageCache.add(highResUrl);
-    }
-    setStatus('loaded');
-  };
-
-  const handleHighResError = () => {
-    if (fallbackStep === 0) {
-      setFallbackStep(1);
-      setStatus('error');
-    } else if (fallbackStep === 1) {
-      setFallbackStep(2);
+      setError(true);
+      setLoading(false);
     }
   };
 
-  const showShimmer = status === 'loading' && !progLoaded;
+  const showShimmer = loading && !progLoaded;
 
   return (
     <div className={`relative w-full h-full bg-bg-elevated overflow-hidden block ${className}`}>
@@ -85,7 +59,7 @@ const OptimizedBookCover = ({
       {showShimmer && <div className="absolute top-0 left-0 w-full h-full z-10 shimmer-bg" />}
 
       {/* 2. Progressive Low-Res blurry image (size S) */}
-      {status === 'loading' && lowResUrl && (
+      {loading && lowResUrl && currentSrc === primaryUrl && (
         <img
           src={lowResUrl}
           alt=""
@@ -98,17 +72,17 @@ const OptimizedBookCover = ({
         />
       )}
 
-      {/* 3. High-Res target image */}
+      {/* 3. Main target image */}
       <img
         src={currentSrc}
         alt={alt}
-        className={`absolute top-0 left-0 w-full h-full object-cover z-30 block ${
-          status === 'loaded' ? 'opacity-100 animate-fade-cover' : 'opacity-0'
+        className={`absolute top-0 left-0 w-full h-full object-cover z-30 block transition-opacity duration-350 ease-out ${
+          loading ? 'opacity-0' : 'opacity-100'
         }`}
         loading={priority ? 'eager' : 'lazy'}
         draggable="false"
-        onLoad={handleHighResLoad}
-        onError={handleHighResError}
+        onLoad={handleLoad}
+        onError={handleError}
       />
     </div>
   );

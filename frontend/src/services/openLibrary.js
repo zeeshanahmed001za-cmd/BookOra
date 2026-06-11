@@ -4,7 +4,7 @@ const COVERS_BASE = 'https://covers.openlibrary.org/b/id';
 
 export const FALLBACK_COVER = 'https://images.unsplash.com/photo-1543004218-2bc3500d970c?auto=format&fit=crop&q=80&w=400';
 export const FALLBACK_IMAGE = FALLBACK_COVER;
-export const FALLBACK_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%231e1b4b"/><stop offset="100%" stop-color="%23311042"/></linearGradient></defs><rect width="300" height="400" fill="url(%23g)"/><path d="M110 130 h80 a10 10 0 0 1 10 10 v120 a10 10 0 0 1 -10 10 h-80 a10 10 0 0 1 -10 -10 v-120 a10 10 0 0 1 10 -10 z" fill="none" stroke="%23a294fb" stroke-width="4" stroke-linejoin="round" opacity="0.4"/><path d="M130 170 h40 M130 200 h40 M130 230 h30" stroke="%23a294fb" stroke-width="4" stroke-linecap="round" opacity="0.4"/></svg>`;
+export const FALLBACK_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='400' viewBox='0 0 300 400'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231e1b4b'/%3E%3Cstop offset='100%25' stop-color='%23311042'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='300' height='400' fill='url(%23g)'/%3E%3Cpath d='M110 130 h80 a10 10 0 0 1 10 10 v120 a10 10 0 0 1 -10 10 h-80 a10 10 0 0 1 -10 -10 v-120 a10 10 0 0 1 10 -10 z' fill='none' stroke='%23a294fb' stroke-width='4' stroke-linejoin='round' opacity='0.4'/%3E%3Cpath d='M130 170 h40 M130 200 h40 M130 230 h30' stroke='%23a294fb' stroke-width='4' stroke-linecap='round' opacity='0.4'/%3E%3C/svg%3E`;
 
 // Centralized API Cache
 const apiCache = new Map();
