@@ -12,7 +12,6 @@ import BookDetailsModal from './components/BookDetailsModal';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { UserProvider } from './contexts/UserContext';
 import { CartProvider } from './contexts/CartContext';
-import './App.css';
 
 function App() {
   return (
@@ -20,10 +19,10 @@ function App() {
       <UserProvider>
         <WishlistProvider>
           <CartProvider>
-            <div className="app">
+            <div className="min-h-screen flex flex-col bg-[#050505]">
               <Navbar />
               <SubNav />
-              <main>
+              <main className="flex-1">
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/books" element={<Books />} />
@@ -31,7 +30,11 @@ function App() {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/cart"  element={<Cart />} />
                   <Route path="/wishlist" element={<Wishlist />} />
-                  <Route path="/sell"  element={<div className="placeholder-page">Sell Books (Coming Soon)</div>} />
+                  <Route path="/sell"  element={
+                    <div className="flex items-center justify-content-center h-[60vh] text-2xl text-[#606060]">
+                      Sell Books (Coming Soon)
+                    </div>
+                  } />
                 </Routes>
               </main>
               <Footer />

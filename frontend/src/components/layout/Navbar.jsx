@@ -5,7 +5,6 @@ import { useWishlist } from '../../contexts/WishlistContext';
 import { useUser } from '../../contexts/UserContext';
 import { useCart } from '../../contexts/CartContext';
 import logo from '../../assets/logo.png';
-import './Navbar.css';
 
 /** Derive up to 2 uppercase initials from a name string */
 const getInitials = (name = '') => {
@@ -29,12 +28,8 @@ const Navbar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Sync search input value with URL search parameter changes
-  useEffect(() => {
-    setSearchQuery(urlSearch);
-  }, [urlSearch]);
+  useEffect(() => { setSearchQuery(urlSearch); }, [urlSearch]);
 
-  // Close dropdown on click outside
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -42,26 +37,18 @@ const Navbar = () => {
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  // Close dropdown on location change
-  useEffect(() => {
-    setShowDropdown(false);
-  }, [location.pathname]);
+  useEffect(() => { setShowDropdown(false); }, [location.pathname]);
 
   const handleSearchChange = (val) => {
     setSearchQuery(val);
     if (location.pathname === '/books') {
       const newParams = new URLSearchParams(window.location.search);
       const trimmed = val.trim();
-      if (trimmed) {
-        newParams.set('search', trimmed);
-      } else {
-        newParams.delete('search');
-      }
+      if (trimmed) { newParams.set('search', trimmed); }
+      else { newParams.delete('search'); }
       navigate(`/books?${newParams.toString()}`, { replace: true });
     }
   };
@@ -78,81 +65,146 @@ const Navbar = () => {
   const initials = user ? getInitials(user.fullName || user.name || user.username) : 'U';
 
   return (
-    <nav className="navbar glass">
-      <div className="navbar-container">
+    <nav className="glass relative w-full z-[1000]" style={{ height: '103px' }}>
+      <div className="max-w-[1490px] h-full mx-auto px-10 flex items-center justify-between gap-8">
 
-        {/* Left: Logo */}
-        <Link to="/" className="nav-logo">
-          <img src={logo} alt="Bookora" className="nav-logo-img" />
-          <span className="nav-logo-text">Book<span className="gradient-text">ora</span></span>
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-3.5 flex-shrink-0 no-underline">
+          <img
+            src={logo}
+            alt="Bookora"
+            className="h-[68px] w-[68px] object-cover rounded-full bg-white p-1"
+            style={{
+              border: '2px solid rgba(162,148,251,0.4)',
+              boxShadow: '0 0 18px rgba(162,148,251,0.2)',
+            }}
+          />
+          <span className="text-[1.7rem] font-bold tracking-tight whitespace-nowrap">
+            Book<span className="gradient-text">ora</span>
+          </span>
         </Link>
 
-        {/* Center: Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="nav-search-wrap">
+        {/* Search */}
+        <form
+          onSubmit={handleSearchSubmit}
+          className="flex flex-1 max-w-[680px] items-center bg-[#1a1a1a] rounded-full overflow-hidden transition-all"
+          style={{ border: '1.5px solid rgba(255,255,255,0.1)' }}
+          onFocus={() => {}}
+        >
           <input
             type="text"
-            className="nav-search-input"
             placeholder="Enter Keyword To Search..."
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
+            className="flex-1 h-[52px] px-6 bg-transparent border-none outline-none text-[0.95rem] text-white placeholder:text-[#606060] font-[inherit]"
           />
-          <button type="submit" className="nav-search-btn" aria-label="Search">
+          <button
+            type="submit"
+            aria-label="Search"
+            className="flex items-center justify-center gap-2 px-[22px] h-[52px] bg-accent-gradient text-white text-[0.9rem] font-semibold flex-shrink-0 tracking-wide hover:opacity-90 transition-opacity"
+            style={{ background: 'linear-gradient(135deg,#a294fb,#8b5cf6)' }}
+          >
             <Search size={18} />
             <span>Search</span>
           </button>
         </form>
 
-        {/* Right: Action Icons */}
-        <div className="nav-actions">
-          <Link to="/wishlist" className="nav-icon-btn" title="My Favorites">
+        {/* Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+
+          {/* Wishlist */}
+          <Link
+            to="/wishlist"
+            title="My Favorites"
+            className="relative flex items-center justify-center w-12 h-12 rounded-full text-[#a0a0a0] hover:bg-[#1a1a1a] hover:text-white transition-colors"
+          >
             <Heart size={24} />
             {wishlist.length > 0 && (
-              <span className="wishlist-badge">{wishlist.length}</span>
+              <span
+                className="absolute top-2.5 right-2.5 w-[18px] h-[18px] rounded-full text-[10px] font-bold text-white flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg,#a294fb,#8b5cf6)',
+                  border: '2px solid #050505',
+                }}
+              >
+                {wishlist.length}
+              </span>
             )}
           </Link>
 
-          {/* Account Dropdown Container */}
-          <div className="nav-dropdown-container" ref={dropdownRef}>
+          {/* Account Dropdown */}
+          <div className="relative flex" ref={dropdownRef}>
             <button
-              className="nav-icon-btn"
+              className="relative flex items-center justify-center w-12 h-12 rounded-full text-[#a0a0a0] hover:bg-[#1a1a1a] hover:text-white transition-colors"
               onClick={() => setShowDropdown(!showDropdown)}
               title="Account"
               aria-haspopup="true"
               aria-expanded={showDropdown}
             >
               {isAuthenticated && user ? (
-                <div className="nav-initials-avatar" aria-label={initials}>{initials}</div>
+                <div
+                  className="w-[34px] h-[34px] rounded-full text-white text-xs font-bold flex items-center justify-center tracking-wide flex-shrink-0 transition-transform hover:scale-105"
+                  aria-label={initials}
+                  style={{
+                    background: 'linear-gradient(135deg,#a294fb,#8b5cf6)',
+                    border: '2px solid rgba(162,148,251,0.4)',
+                    boxShadow: '0 0 10px rgba(162,148,251,0.25)',
+                  }}
+                >
+                  {initials}
+                </div>
               ) : (
                 <User size={24} />
               )}
             </button>
 
             {showDropdown && (
-              <div className="nav-dropdown glass fade-in">
+              <div
+                className="animate-fade-in absolute top-[calc(100%+10px)] right-0 w-[220px] rounded-xl p-2 flex flex-col gap-0.5 z-[1100]"
+                style={{
+                  background: '#0f0f0f',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: '0 16px 32px rgba(0,0,0,0.6)',
+                }}
+              >
                 {isAuthenticated ? (
                   <>
-                    <div className="nav-dropdown-user-info">
-                      <span className="nd-name">{user.fullName || user.name}</span>
-                      <span className="nd-username">@{user.username}</span>
+                    <div className="flex flex-col px-3.5 py-2.5">
+                      <span className="text-[0.9rem] font-bold text-white leading-tight">
+                        {user.fullName || user.name}
+                      </span>
+                      <span className="text-[0.75rem] text-[#606060] mt-0.5">@{user.username}</span>
                     </div>
-                    <div className="nav-dropdown-divider" />
-                    <Link to="/profile" className="nav-dropdown-item">
-                      <User size={16} />
+                    <div className="h-px bg-white/10 mx-1.5 my-1.5" />
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[#a0a0a0] text-[0.85rem] font-medium hover:bg-white/[0.04] hover:text-white transition-colors [&:hover_svg]:text-[#a294fb]"
+                    >
+                      <User size={16} className="text-[#606060] transition-colors" />
                       <span>My Profile</span>
                     </Link>
-                    <button className="nav-dropdown-item logout" onClick={logout}>
-                      <LogOut size={16} />
+                    <button
+                      className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[#a0a0a0] text-[0.85rem] font-medium w-full text-left hover:bg-[rgba(255,77,109,0.06)] hover:text-[#ff4d6d] transition-colors [&:hover_svg]:text-[#ff4d6d]"
+                      onClick={logout}
+                    >
+                      <LogOut size={16} className="text-[#606060] transition-colors" />
                       <span>Sign Out</span>
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link to="/auth?mode=signin" className="nav-dropdown-item">
-                      <LogIn size={16} />
+                    <Link
+                      to="/auth?mode=signin"
+                      className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[#a0a0a0] text-[0.85rem] font-medium hover:bg-white/[0.04] hover:text-white transition-colors [&:hover_svg]:text-[#a294fb]"
+                    >
+                      <LogIn size={16} className="text-[#606060] transition-colors" />
                       <span>Sign In</span>
                     </Link>
-                    <Link to="/auth?mode=signup" className="nav-dropdown-item signup-highlight">
-                      <UserPlus size={16} />
+                    <Link
+                      to="/auth?mode=signup"
+                      className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[#a294fb] text-[0.85rem] font-semibold hover:bg-[rgba(162,148,251,0.08)] transition-colors [&:hover_svg]:text-[#a294fb]"
+                    >
+                      <UserPlus size={16} className="text-[#606060] transition-colors" />
                       <span>Create Account</span>
                     </Link>
                   </>
@@ -161,10 +213,23 @@ const Navbar = () => {
             )}
           </div>
 
-          <Link to="/cart" className="nav-icon-btn" title="Cart">
+          {/* Cart */}
+          <Link
+            to="/cart"
+            title="Cart"
+            className="relative flex items-center justify-center w-12 h-12 rounded-full text-[#a0a0a0] hover:bg-[#1a1a1a] hover:text-white transition-colors"
+          >
             <ShoppingCart size={24} />
             {cartCount > 0 && (
-              <span className="cart-badge">{cartCount}</span>
+              <span
+                className="absolute top-2.5 right-2.5 w-[18px] h-[18px] rounded-full text-[10px] font-bold text-white flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg,#a294fb,#8b5cf6)',
+                  border: '2px solid #050505',
+                }}
+              >
+                {cartCount}
+              </span>
             )}
           </Link>
         </div>
@@ -175,4 +240,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

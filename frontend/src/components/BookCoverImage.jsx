@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { FALLBACK_COVER, FALLBACK_SVG } from '../services/openLibrary';
-import './BookCoverImage.css';
 
 /**
  * BookCoverImage — renders an Open Library cover with progressive fallback:
@@ -31,12 +30,14 @@ const BookCoverImage = ({ src, alt, className = '' }) => {
   }
 
   return (
-    <div className="book-cover-img-wrapper">
-      {!loaded && <div className="book-cover-shimmer shimmer-bg" />}
+    <div className="relative w-full h-full bg-bg-elevated overflow-hidden">
+      {!loaded && <div className="absolute top-0 left-0 w-full h-full z-[1] shimmer-bg" />}
       <img
         src={imgSrc}
         alt={alt || 'Book cover'}
-        className={`book-cover-img ${loaded ? 'loaded' : 'loading'} ${className}`}
+        className={`w-full h-full object-cover block transition-[opacity,transform] duration-500 ease-out ${
+          loaded ? 'opacity-100' : 'opacity-0'
+        } ${className}`}
         loading="lazy"
         draggable="false"
         onLoad={() => setLoaded(true)}

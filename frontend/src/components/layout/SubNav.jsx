@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
-import './SubNav.css';
 
-/* ── Data ────────────────────────────────────────────── */
+/* ── Data ────────────────────────────────────────────────── */
 
 const BOOKS_FEATURED = [
   { label: 'Best Sellers', path: '/books?badge=Bestseller' },
@@ -75,11 +74,7 @@ const BOOKS_CATEGORIES = [
 ];
 
 const NAV_ITEMS = [
-  {
-    label: 'BOOKS',
-    path: '/books',
-    megaMenu: true,  // special flag for mega dropdown
-  },
+  { label: 'BOOKS', path: '/books', megaMenu: true },
   {
     label: 'GENRES',
     children: [
@@ -116,25 +111,55 @@ const NAV_ITEMS = [
 /* ── Mega-Menu for "Books" ─────────────────────────── */
 
 const BooksMegaMenu = ({ onClose }) => (
-  <div className="mega-menu">
-    {/* ── Featured horizontal bar ── */}
-    <div className="mega-featured-bar">
+  <div
+    className="absolute top-full left-0 w-full animate-mega-slide z-[1000]"
+    style={{
+      background: 'rgba(10,10,10,0.97)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      borderBottom: '1px solid rgba(255,255,255,0.1)',
+      boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
+    }}
+  >
+    {/* Bridge pseudo-element gap via padding-top trick */}
+    <div className="absolute -top-2.5 left-0 w-full h-2.5 bg-transparent" />
+
+    {/* Featured bar */}
+    <div
+      className="flex items-center"
+      style={{ background: 'linear-gradient(90deg,#7c3aed 0%,#a294fb 50%,#8b5cf6 100%)' }}
+    >
       {BOOKS_FEATURED.map((f) => (
-        <Link key={f.label} to={f.path} className="mega-featured-link" onClick={onClose}>
+        <Link
+          key={f.label}
+          to={f.path}
+          onClick={onClose}
+          className="flex-1 text-center py-3.5 px-6 text-[0.88rem] font-bold tracking-[0.08em] uppercase text-white no-underline hover:bg-white/[0.12] transition-colors relative
+            [&:not(:last-child)]:after:content-[''] [&:not(:last-child)]:after:absolute [&:not(:last-child)]:after:right-0 [&:not(:last-child)]:after:top-[25%] [&:not(:last-child)]:after:h-[50%] [&:not(:last-child)]:after:w-px [&:not(:last-child)]:after:bg-white/25"
+        >
           {f.label}
         </Link>
       ))}
     </div>
 
-    {/* ── Category columns ── */}
-    <div className="mega-categories">
+    {/* Category columns */}
+    <div className="grid grid-cols-4 max-w-[1490px] mx-auto px-10 pt-8 pb-10">
       {BOOKS_CATEGORIES.map((cat) => (
-        <div key={cat.heading} className="mega-category-col">
-          <h4 className="mega-category-heading">{cat.heading}</h4>
-          <ul className="mega-category-list">
+        <div
+          key={cat.heading}
+          className="px-5 border-r border-white/[0.06] last:border-r-0"
+        >
+          <h4 className="text-[0.8rem] font-bold tracking-[0.1em] uppercase text-[#a294fb] mb-4 pb-2.5 border-b-2 border-[rgba(162,148,251,0.2)]">
+            {cat.heading}
+          </h4>
+          <ul className="flex flex-col gap-0.5">
             {cat.items.map((item) => (
               <li key={item.label}>
-                <Link to={item.path} className="mega-category-link" onClick={onClose}>
+                <Link
+                  to={item.path}
+                  onClick={onClose}
+                  className="block px-3 py-[7px] rounded-md text-[0.84rem] text-[#a0a0a0] no-underline transition-all duration-150 hover:bg-[rgba(162,148,251,0.08)] hover:text-white hover:pl-[18px]"
+                >
                   {item.label}
                 </Link>
               </li>
@@ -159,9 +184,7 @@ const NavItem = ({ item }) => {
   };
 
   const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setOpen(false);
-    }, 150); // small delay to bridge gaps
+    timeoutRef.current = setTimeout(() => setOpen(false), 150);
   };
 
   useEffect(() => {
@@ -175,58 +198,76 @@ const NavItem = ({ item }) => {
     };
   }, []);
 
-  /* --- Books mega-menu item --- */
+  const linkBase = 'flex items-center gap-1.5 px-3.5 py-[5px] rounded-md text-[0.82rem] font-semibold tracking-[0.06em] text-[#a0a0a0] bg-transparent border-none cursor-pointer font-[inherit] whitespace-nowrap uppercase no-underline transition-all duration-150 hover:text-white hover:bg-white/[0.04]';
+
+  /* Books mega-menu */
   if (item.megaMenu) {
     return (
       <div
-        className="subnav-item subnav-item--mega"
+        className="relative"
         ref={ref}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <button className="subnav-link subnav-trigger">
+        <button className={linkBase}>
           {item.label}
-          <ChevronDown size={14} className={open ? 'rotated' : ''} />
+          <ChevronDown
+            size={14}
+            className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          />
         </button>
-
         {open && <BooksMegaMenu onClose={() => setOpen(false)} />}
       </div>
     );
   }
 
-  /* --- Plain link (no children) --- */
+  /* Plain link */
   if (!item.children) {
+    const isTrack = item.label === 'TRACK MY ORDER';
     return (
       <Link
         to={item.path}
-        className={`subnav-link${item.label === 'TRACK MY ORDER' ? ' subnav-track' : ''}`}
+        className={`${linkBase} ${isTrack ? 'text-[#606060] hover:text-[#a294fb] hover:bg-[rgba(162,148,251,0.08)]' : ''}`}
       >
         {item.label}
       </Link>
     );
   }
 
-  /* --- Standard dropdown --- */
+  /* Standard dropdown */
+  const isCta = item.label === 'SELL YOUR BOOKS';
   return (
     <div
-      className={`subnav-item${item.label === 'SELL YOUR BOOKS' ? ' subnav-item--cta' : ''}`}
+      className={`relative ${isCta ? 'ml-auto' : ''}`}
       ref={ref}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <button className={`subnav-link subnav-trigger${item.label === 'SELL YOUR BOOKS' ? ' subnav-cta' : ''}`}>
+      <button className={`${linkBase} ${isCta ? 'text-[#a294fb] hover:text-white hover:bg-[#a294fb]' : ''}`}>
         {item.label}
-        <ChevronDown size={14} className={open ? 'rotated' : ''} />
+        <ChevronDown
+          size={14}
+          className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
-        <div className="subnav-dropdown">
+        <div
+          className="absolute top-[calc(100%+4px)] left-0 min-w-[200px] rounded-[10px] z-[1000] p-1.5 animate-drop-in"
+          style={{
+            background: '#111',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 16px 40px rgba(0,0,0,0.6)',
+          }}
+        >
+          {/* Bridge gap */}
+          <div className="absolute -top-3 left-0 w-full h-3 bg-transparent" />
           {item.children.map((child) => (
             <Link
               key={child.label}
               to={child.path}
-              className="dropdown-item"
               onClick={() => setOpen(false)}
+              className="block px-3.5 py-2.5 rounded-[7px] text-[0.875rem] text-[#a0a0a0] no-underline transition-all duration-150 hover:bg-[#1a1a1a] hover:text-white"
             >
               {child.label}
             </Link>
@@ -239,16 +280,17 @@ const NavItem = ({ item }) => {
 
 /* ── SubNav (bar) ──────────────────────────────────── */
 
-const SubNav = () => {
-  return (
-    <div className="subnav glass">
-      <div className="subnav-container">
-        {NAV_ITEMS.map((item) => (
-          <NavItem key={item.label} item={item} />
-        ))}
-      </div>
+const SubNav = () => (
+  <div
+    className="glass relative w-full z-[999] border-y border-white/10"
+    style={{ height: '46px' }}
+  >
+    <div className="max-w-[1490px] h-full mx-auto px-10 flex items-center gap-1">
+      {NAV_ITEMS.map((item) => (
+        <NavItem key={item.label} item={item} />
+      ))}
     </div>
-  );
-};
+  </div>
+);
 
 export default SubNav;

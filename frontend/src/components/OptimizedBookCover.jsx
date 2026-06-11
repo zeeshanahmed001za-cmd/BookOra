@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { FALLBACK_COVER, FALLBACK_SVG, buildCoverUrl } from '../services/openLibrary';
-import './OptimizedBookCover.css';
 
 // Global session cache for loaded image URLs to prevent flashes during navigation
 const loadedImageCache = new Set();
@@ -81,16 +80,18 @@ const OptimizedBookCover = ({
   const showShimmer = status === 'loading' && !progLoaded;
 
   return (
-    <div className={`opt-cover-wrapper ${className}`}>
+    <div className={`relative w-full h-full bg-bg-elevated overflow-hidden block ${className}`}>
       {/* 1. Shimmer skeleton placeholder */}
-      {showShimmer && <div className="opt-cover-shimmer shimmer-bg" />}
+      {showShimmer && <div className="absolute top-0 left-0 w-full h-full z-10 shimmer-bg" />}
 
       {/* 2. Progressive Low-Res blurry image (size S) */}
       {status === 'loading' && lowResUrl && (
         <img
           src={lowResUrl}
           alt=""
-          className={`opt-cover-lowres ${progLoaded ? 'visible' : ''}`}
+          className={`absolute top-0 left-0 w-full h-full object-cover blur-[6px] scale-105 transition-opacity duration-250 ease-out z-20 pointer-events-none ${
+            progLoaded ? 'opacity-[0.85]' : 'opacity-0'
+          }`}
           loading="eager"
           draggable="false"
           onLoad={() => setProgLoaded(true)}
@@ -101,7 +102,9 @@ const OptimizedBookCover = ({
       <img
         src={currentSrc}
         alt={alt}
-        className={`opt-cover-highres ${status === 'loaded' ? 'visible' : 'hidden'}`}
+        className={`absolute top-0 left-0 w-full h-full object-cover z-30 block ${
+          status === 'loaded' ? 'opacity-100 animate-fade-cover' : 'opacity-0'
+        }`}
         loading={priority ? 'eager' : 'lazy'}
         draggable="false"
         onLoad={handleHighResLoad}
