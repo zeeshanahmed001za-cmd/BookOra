@@ -110,9 +110,11 @@ const NAV_ITEMS = [
 
 /* ── Mega-Menu for "Books" ─────────────────────────── */
 
-const BooksMegaMenu = ({ onClose }) => (
+const BooksMegaMenu = ({ onClose, onMouseEnter, onMouseLeave }) => (
   <div
     className="absolute top-full left-0 w-full animate-mega-slide z-[1000]"
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
     style={{
       background: 'rgba(10,10,10,0.97)',
       backdropFilter: 'blur(16px)',
@@ -169,7 +171,7 @@ const BooksMegaMenu = ({ onClose }) => (
 
 /* ── Single nav item ───────────────────────────────── */
 
-const NavItem = ({ item, onMegaMenuChange }) => {
+const NavItem = ({ item, onMegaMenuChange, isMegaOpen, onMegaMouseEnter, onMegaMouseLeave }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const timeoutRef = useRef(null);
@@ -209,14 +211,14 @@ const NavItem = ({ item, onMegaMenuChange }) => {
       <div
         className="relative"
         ref={ref}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={onMegaMouseEnter}
+        onMouseLeave={onMegaMouseLeave}
       >
         <button className={linkBase}>
           {item.label}
           <ChevronDown
             size={14}
-            className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            className={`transition-transform duration-200 ${isMegaOpen ? 'rotate-180' : ''}`}
           />
         </button>
       </div>
@@ -284,9 +286,37 @@ const NavItem = ({ item, onMegaMenuChange }) => {
 
 const SubNav = () => {
   const [megaOpen, setMegaOpen] = useState(false);
+  const timeoutRef = useRef(null);
+  const subNavRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setMegaOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setMegaOpen(false);
+    }, 150);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (subNavRef.current && !subNavRef.current.contains(e.target)) {
+        setMegaOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   return (
     <div
+      ref={subNavRef}
       className="glass relative w-full z-[999] border-y border-white/10"
       style={{ height: '46px' }}
     >
@@ -296,13 +326,20 @@ const SubNav = () => {
             key={item.label}
             item={item}
             onMegaMenuChange={item.megaMenu ? setMegaOpen : () => {}}
+            isMegaOpen={megaOpen}
+            onMegaMouseEnter={handleMouseEnter}
+            onMegaMouseLeave={handleMouseLeave}
           />
         ))}
       </div>
 
       {/* Mega menu rendered at SubNav level so it spans full width */}
       {megaOpen && (
-        <BooksMegaMenu onClose={() => setMegaOpen(false)} />
+        <BooksMegaMenu
+          onClose={() => setMegaOpen(false)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        />
       )}
     </div>
   );
