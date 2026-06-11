@@ -121,9 +121,6 @@ const BooksMegaMenu = ({ onClose }) => (
       boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
     }}
   >
-    {/* Bridge pseudo-element gap via padding-top trick */}
-    <div className="absolute -top-2.5 left-0 w-full h-2.5 bg-transparent" />
-
     {/* Featured bar */}
     <div
       className="flex items-center"
@@ -134,8 +131,7 @@ const BooksMegaMenu = ({ onClose }) => (
           key={f.label}
           to={f.path}
           onClick={onClose}
-          className="flex-1 text-center py-3.5 px-6 text-[0.88rem] font-bold tracking-[0.08em] uppercase text-white no-underline hover:bg-white/[0.12] transition-colors relative
-            [&:not(:last-child)]:after:content-[''] [&:not(:last-child)]:after:absolute [&:not(:last-child)]:after:right-0 [&:not(:last-child)]:after:top-[25%] [&:not(:last-child)]:after:h-[50%] [&:not(:last-child)]:after:w-px [&:not(:last-child)]:after:bg-white/25"
+          className="flex-1 text-center py-3.5 px-6 text-[0.88rem] font-bold tracking-[0.08em] uppercase text-white no-underline hover:bg-white/[0.12] transition-colors"
         >
           {f.label}
         </Link>
@@ -173,7 +169,7 @@ const BooksMegaMenu = ({ onClose }) => (
 
 /* ── Single nav item ───────────────────────────────── */
 
-const NavItem = ({ item }) => {
+const NavItem = ({ item, onMegaMenuChange }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const timeoutRef = useRef(null);
@@ -181,15 +177,22 @@ const NavItem = ({ item }) => {
   const handleMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setOpen(true);
+    if (item.megaMenu) onMegaMenuChange(true);
   };
 
   const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => setOpen(false), 150);
+    timeoutRef.current = setTimeout(() => {
+      setOpen(false);
+      if (item.megaMenu) onMegaMenuChange(false);
+    }, 150);
   };
 
   useEffect(() => {
     const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+        if (item.megaMenu) onMegaMenuChange(false);
+      }
     };
     document.addEventListener('mousedown', handleClick);
     return () => {
@@ -200,7 +203,7 @@ const NavItem = ({ item }) => {
 
   const linkBase = 'flex items-center gap-1.5 px-3.5 py-[5px] rounded-md text-[0.82rem] font-semibold tracking-[0.06em] text-[#a0a0a0] bg-transparent border-none cursor-pointer font-[inherit] whitespace-nowrap uppercase no-underline transition-all duration-150 hover:text-white hover:bg-white/[0.04]';
 
-  /* Books mega-menu */
+  /* Books mega-menu trigger only — menu itself is lifted to SubNav */
   if (item.megaMenu) {
     return (
       <div
@@ -216,7 +219,6 @@ const NavItem = ({ item }) => {
             className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           />
         </button>
-        {open && <BooksMegaMenu onClose={() => setOpen(false)} />}
       </div>
     );
   }
@@ -253,7 +255,7 @@ const NavItem = ({ item }) => {
 
       {open && (
         <div
-          className="absolute top-[calc(100%+4px)] left-0 min-w-[200px] rounded-[10px] z-[1000] p-1.5 animate-drop-in"
+          className="absolute top-[calc(100%+8px)] left-0 min-w-[200px] rounded-[10px] z-[1000] p-1.5 animate-drop-in"
           style={{
             background: '#111',
             border: '1px solid rgba(255,255,255,0.1)',
@@ -280,17 +282,30 @@ const NavItem = ({ item }) => {
 
 /* ── SubNav (bar) ──────────────────────────────────── */
 
-const SubNav = () => (
-  <div
-    className="glass relative w-full z-[999] border-y border-white/10"
-    style={{ height: '46px' }}
-  >
-    <div className="max-w-[1490px] h-full mx-auto px-10 flex items-center gap-1">
-      {NAV_ITEMS.map((item) => (
-        <NavItem key={item.label} item={item} />
-      ))}
+const SubNav = () => {
+  const [megaOpen, setMegaOpen] = useState(false);
+
+  return (
+    <div
+      className="glass relative w-full z-[999] border-y border-white/10"
+      style={{ height: '46px' }}
+    >
+      <div className="max-w-[1490px] h-full mx-auto px-10 flex items-center gap-1">
+        {NAV_ITEMS.map((item) => (
+          <NavItem
+            key={item.label}
+            item={item}
+            onMegaMenuChange={item.megaMenu ? setMegaOpen : () => {}}
+          />
+        ))}
+      </div>
+
+      {/* Mega menu rendered at SubNav level so it spans full width */}
+      {megaOpen && (
+        <BooksMegaMenu onClose={() => setMegaOpen(false)} />
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 export default SubNav;
